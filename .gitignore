@@ -1,0 +1,21 @@
+# Compilação do Arduino
+build/
+.build/
+*.hex
+*.elf
+*.o
+
+# Editores
+.vscode/
+.idea/
+*.swp
+*~
+
+# Sistema operacional
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# OneDrive / arquivos temporários
+*.tmp
+~$*
