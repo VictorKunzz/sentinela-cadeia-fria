@@ -264,8 +264,6 @@ A conectividade que a N1 exige colide com a realidade do uso extramuros: **escol
 
 ## 11. Feedback da Aula 04
 
-> ⚠️ **Seção a preencher pela equipe.** Registrar aqui, em poucas frases, o que o professor observou ou perguntou na conversa individual desta aula, e como isso confirma ou muda o plano. *(O conteúdo abaixo é um modelo — substituir pelo retorno real.)*
-
 - **O que o professor observou/perguntou:** _(preencher)_
 - **O que isso confirma no nosso plano:** _(preencher)_
 - **O que muda a partir disso:** _(preencher)_
