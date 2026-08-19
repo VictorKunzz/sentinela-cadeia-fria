@@ -3,10 +3,11 @@
 | | |
 |---|---|
 | **Registrado em** | Aula 02 — lançamento da N1 |
+| **Revisitado em** | Aprofundamento pós-Aula 04 — à luz de eletrônica (Aula 03) e ADC (Aula 04) |
 | **Responsável pela investigação** | Nicholas (experimento) · Vinicius (registro) |
 | **Status** | Aberto — aguardando execução do experimento |
 | **Impacto se confirmado** | Alto — invalida a medição central do projeto |
-| **Bloqueia** | Tarefa 8 (definição do limite de exposição) |
+| **Bloqueia** | Tarefa 14 (definição do limite de exposição) |
 
 ## Enunciado
 
@@ -30,7 +31,7 @@ O Sentinela mede eventos de **30 a 60 segundos** — o tempo típico de uma tamp
 
 ### Materiais
 
-- BlackBoard UNO R3 + DHT11 montados, imprimindo no serial a cada 1 s
+- ESP32 DevKit + DHT11 montados, imprimindo no serial a cada 1 s
 - **Termômetro digital de referência** com resposta rápida — *o grupo ainda não tem; providenciar antes do experimento*
 - Fonte de calor estável (secador em ar quente a distância fixa, ou ambiente aquecido controlado)
 - Cronômetro
@@ -68,11 +69,21 @@ Em ordem de preferência, caso o critério condene o sensor:
 
 | Alternativa | Vantagem | Custo |
 |---|---|---|
-| **DS18B20** (1-Wire, à prova d'água) | ±0,5 °C, resolução configurável até 0,0625 °C, versão em sonda de aço responde rápido | baixo |
-| **LM35** (analógico) | resposta rápida, saída linear, leitura direta por ADC | muito baixo |
-| **Termistor NTC 10k** | o mais barato e o mais rápido; exige linearização por software | mínimo |
+| **DS18B20** (1-Wire, à prova d'água) | ±0,5 °C, resolução configurável até 0,0625 °C, versão em sonda de aço responde rápido; **é digital, não usa o ADC** | baixo |
+| **LM35** (analógico) | resposta rápida, saída linear; lido pelo **ADC do ESP32** | muito baixo |
+| **Termistor NTC 10k** | o mais barato e o mais rápido; lido pelo **ADC**, exige linearização (equação de Steinhart-Hart) por software | mínimo |
 
-Qualquer um deles é externo ao kit — daí a dúvida nº 3 dirigida ao professor.
+Qualquer um deles é externo ao kit — daí a dúvida dirigida ao professor sobre componentes fora do kit.
+
+### Nota de ADC (revisão pós-Aula 04)
+
+As duas alternativas analógicas (LM35, NTC) passam pelo **conversor ADC do ESP32**, e isso traz cuidados que a Aula 04 evidenciou:
+
+- o ADC do ESP32 é de **12 bits** (0–4095), mas **não-linear**, sobretudo perto de 0 V e do teto da faixa;
+- precisa de **atenuação** adequada (`ADC_ATTEN_DB_11` para ~0–3,3 V) e, idealmente, da **calibração de fábrica** (`esp_adc_cal`) para converter contagem em tensão de forma confiável;
+- ruído de leitura pede **média de várias amostras** por medida.
+
+Ou seja: trocar por um sensor analógico não é de graça — transfere o problema de inércia térmica do DHT11 para um problema de **condicionamento e calibração de sinal** no ADC. Por isso o **DS18B20 (digital, sem ADC)** permanece como primeira opção do plano B: resolve o tempo de resposta sem herdar as armadilhas do conversor.
 
 ## Mitigação parcial, independente do resultado
 
