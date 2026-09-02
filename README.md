@@ -228,14 +228,14 @@ Cada tarefa carrega um critério de conclusão verificável, o "pronto quando". 
 | 1 | Criar repositório e adicionar colaboradores | documentação | Victor | todos conseguem dar push | ✅ concluída |
 | 2 | README inicial (Aula 02) | documentação | Victor | os 10 itens exigidos presentes | ✅ concluída |
 | 3 | Conferir e fotografar o kit + listar o que falta comprar | hardware | A definir | lista com quantidades em `docs/` | ⬜ A fazer |
-| 4 | Semáforo (LED RGB) nas 3 cores no ESP32 | atuador / circuito | A definir | 3 cores alternam em sequência de 1 s | ⬜ A fazer |
-| 5 | Ler o DHT11 e imprimir T e UR no serial | sensor | A definir | 10 leituras plausíveis, 1/s | ⬜ A fazer |
-| 6 | Ler a chave de tampa com debounce | circuito | A definir | 20 aberturas geram exatamente 20 eventos | ⬜ A fazer |
-| 7 | Conectar o ESP32 ao Wi-Fi com reconexão | **Wi-Fi / reconexão** | A definir | derruba o AP e o ESP reconecta sozinho < 15 s | ⬜ A fazer |
+| 4 | Semáforo (LED RGB) nas 3 cores no ESP32 | atuador / circuito | Lucas | 3 cores alternam em sequência de 1 s | 🔄 em andamento |
+| 5 | Ler o DHT11 e imprimir T e UR no serial | sensor | Lucas | 10 leituras plausíveis, 1/s | 🔄 em andamento |
+| 6 | Ler a chave de tampa com debounce | circuito | Lucas | 20 aberturas geram exatamente 20 eventos | 🔄 em andamento |
+| 7 | Conectar o ESP32 ao Wi-Fi com reconexão | **Wi-Fi / reconexão** | Lucas | derruba o AP e o ESP reconecta sozinho < 15 s | 🔄 em andamento |
 | 8 | Publicar telemetria e eventos no broker MQTT | **MQTT** | A definir | painel recebe telemetria a cada 5 s | ⬜ A fazer |
 | 9 | Assinar `comando/*` e executar com confirmação | **tópico de comando / confirmação** | A definir | comando de relé liga o sinalizador e volta ACK | ⬜ A fazer |
 | 10 | *Last Will* (`status=offline`) + reconexão MQTT | **reconexão** | A definir | matar o device marca `offline` no painel < 10 s | ⬜ A fazer |
-| 11 | Máquina de 3 estados integrando tudo | circuito / lógica | A definir | ciclo FECHADO→EXPOSTO→QUEBRA→reset validado | 📝 Rascunho a validar |
+| 11 | Máquina de 3 estados integrando tudo | circuito / lógica | Lucas | ciclo FECHADO→EXPOSTO→QUEBRA→reset validado | 🔄 em andamento |
 | 12 | Relé + sinalizador de retenção comandado por MQTT | **atuador** | A definir | comando remoto liga/desliga o farol com ACK | ⬜ A fazer |
 | 13 | Medir o tempo de resposta do DHT11 (RISCO-01) | risco | Nicholas / Vinicius | tabela tempo × temperatura + conclusão | ⬜ A fazer |
 | 14 | Definir o limite de exposição com fonte externa | documentação | A definir | número no README com referência citada | ⬜ A fazer |
@@ -243,6 +243,10 @@ Cada tarefa carrega um critério de conclusão verificável, o "pronto quando". 
 | 16 | Roteiro de demonstração da N1 | **demonstração** | A definir | passo a passo que exercita todos os requisitos | ⬜ A fazer |
 
 **Legenda:** ⬜ não iniciada · 🔄 em andamento · 📝 rascunho existe, aguardando validação · ✅ concluída
+
+> **O que já existe em firmware (tarefas 4–7 e 11).** O `firmware/src/main.cpp` implementa e compila: semáforo RGB, leitura do DHT11 com tratamento de `NaN`, debounce reutilizável das chaves, máquina de estados `FECHADO`/`EXPOSTO`/`QUEBRA` com orçamento térmico, e conexão Wi-Fi com reconexão automática não-bloqueante (`manterWifi()`). A conexão Wi-Fi já foi executada e teve a obtenção de IP registrada no monitor serial.
+>
+> Essas tarefas seguem como **em andamento**, e não concluídas, porque os critérios de "pronto quando" exigem **validação com o circuito montado** — que ainda não aconteceu. O caso da tarefa 7 é o mais próximo de fechar: falta apenas derrubar o ponto de acesso com a placa em bancada para comprovar a reconexão, já que o simulador não permite provocar a queda da rede.
 
 ## 10. Primeiro risco técnico (revisitado)
 

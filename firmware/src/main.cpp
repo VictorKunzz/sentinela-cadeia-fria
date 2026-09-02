@@ -1,8 +1,10 @@
 // Sentinela de Cadeia Fria - firmware (ESP32).
-// Parte 6: buzzer (alarme na QUEBRA) e rele (sinalizador de retencao).
+// Parte 7: conexao Wi-Fi com reconexao automatica nao-bloqueante.
 
 #include <Arduino.h>
+#include <WiFi.h>
 #include <DHT.h>
+#include "secrets.h"
 
 // Mapa de pinos (pinos testes, confirmar pinos reais no hardware fisico).
 constexpr uint8_t PINO_DHT    = 4;
@@ -26,16 +28,17 @@ constexpr uint16_t BUZZER_FREQ_HZ  = 2000;
 DHT dht(PINO_DHT, TIPO_DHT);
 
 constexpr uint32_t INTERVALO_DHT_MS = 2000;
-constexpr uint32_t TICK_MS          = 1000;  // passo da drenagem do orcamento
+constexpr uint32_t TICK_MS          = 1000;
 constexpr uint32_t DEBOUNCE_MS      = 30;
-constexpr uint32_t PISCA_MS         = 300;   // piscada/bip em QUEBRA
+constexpr uint32_t PISCA_MS         = 300;
+constexpr uint32_t WIFI_RETENTA_MS  = 5000;   // intervalo entre tentativas
 constexpr float    ORCAMENTO_INICIAL = 120.0f;
 
 // --- Debounce reutilizavel para chaves em INPUT_PULLUP (solto = HIGH) ---
 struct Chave {
   uint8_t  pino;
-  bool     nivel;      // estado ja estabilizado
-  bool     bruto;      // ultima leitura crua
+  bool     nivel;
+  bool     bruto;
   uint32_t marcador;
 
   void iniciar(uint8_t p) {
@@ -56,7 +59,7 @@ struct Chave {
   }
 };
 
-Chave tampa;   // aberta = solto = HIGH (confirmar montagem mecanica)
+Chave tampa;
 Chave botaoReset;
 
 enum class Estado { FECHADO, EXPOSTO, QUEBRA };
@@ -66,16 +69,17 @@ float    orcamento         = ORCAMENTO_INICIAL;
 float    ultimaTemperatura = NAN;
 bool     releLigado        = false;
 
-// Acumuladores da exposicao corrente.
 uint32_t inicioExposicao = 0;
 float    somaTemp        = 0;
 uint32_t amostrasTemp    = 0;
 uint16_t aberturas       = 0;
 
-uint32_t ultimaLeituraDht = 0;
-uint32_t ultimoTick       = 0;
-uint32_t ultimoPisca      = 0;
-bool     piscaLigado      = false;
+uint32_t ultimaLeituraDht   = 0;
+uint32_t ultimoTick         = 0;
+uint32_t ultimoPisca        = 0;
+uint32_t ultimaTentativaWifi = 0;
+bool     piscaLigado        = false;
+bool     wifiEstavaConectado = false;
 
 void escreveLed(uint8_t pino, bool ligado) {
   digitalWrite(pino, (ligado == LED_ATIVO_ALTO) ? HIGH : LOW);
@@ -99,7 +103,6 @@ void buzzer(bool ligado) {
   }
 }
 
-// Sinalizador de retencao. Acionado por comando remoto (Parte 8).
 void setRele(bool ligado) {
   releLigado = ligado;
   digitalWrite(PINO_RELE, (ligado == RELE_ATIVO_ALTO) ? HIGH : LOW);
@@ -108,6 +111,26 @@ void setRele(bool ligado) {
 float consumoPorSegundo(float t) {
   float c = 1.0f + (t - 20.0f) / 10.0f;
   return c < 0 ? 0 : c;
+}
+
+// WiFi.begin nao bloqueia: dispara a tentativa e retorna na hora.
+// A confirmacao da conexao e feita por polling em manterWifi().
+void manterWifi(uint32_t agora) {
+  bool conectado = (WiFi.status() == WL_CONNECTED);
+
+  if (conectado && !wifiEstavaConectado) {
+    Serial.printf("Wi-Fi: conectado. IP %s  RSSI %d dBm\n",
+                  WiFi.localIP().toString().c_str(), WiFi.RSSI());
+  } else if (!conectado && wifiEstavaConectado) {
+    Serial.println("Wi-Fi: conexao caiu.");
+  }
+  wifiEstavaConectado = conectado;
+
+  if (!conectado && (agora - ultimaTentativaWifi >= WIFI_RETENTA_MS)) {
+    ultimaTentativaWifi = agora;
+    Serial.printf("Wi-Fi: tentando conectar em %s...\n", WIFI_SSID);
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  }
 }
 
 void irParaFechado() {
@@ -153,11 +176,17 @@ void setup() {
   buzzer(false);
   setRele(false);
   irParaFechado();
+
+  WiFi.mode(WIFI_STA);   // estacao (cliente); nao vira ponto de acesso
+
   Serial.println("Pronto. Estado inicial: FECHADO.");
 }
 
 void loop() {
   uint32_t agora = millis();
+
+  // Rede: independente da logica local; se cair, o resto segue funcionando.
+  manterWifi(agora);
 
   // Transicoes por tampa (ignoradas em QUEBRA, que so sai por reset).
   if (tampa.atualizar(agora)) {

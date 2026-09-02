@@ -122,7 +122,7 @@ O painel **não assume** que o comando funcionou só porque publicou — ele esp
 
 A rede vai cair — é premissa do projeto (RISCO-02), não exceção. Três mecanismos:
 
-1. **Wi-Fi não bloqueante.** O loop verifica `WiFi.status()`; se caiu, dispara `WiFi.reconnect()` sem travar a lógica local. Meta: reconectar em < 15 s após o AP voltar.
+1. **Wi-Fi não bloqueante.** A cada volta do laço, `manterWifi()` verifica `WiFi.status()`. Se caiu, dispara um novo `WiFi.begin(WIFI_SSID, WIFI_PASSWORD)` a cada `WIFI_RETENTA_MS` (5 s) — sem `while` nem `delay`, de modo que a máquina de estados, o semáforo e o buzzer continuam operando durante a queda. As transições (`conectado` / `conexão caiu` / `tentando conectar`) são registradas no serial, o que serve de evidência do requisito. Meta: reconectar em < 15 s após o AP voltar.
 2. **Reconexão MQTT com backoff.** Se `mqtt.connected()` for falso, tenta reconectar em intervalos crescentes (1 s, 2 s, 4 s… até um teto), reassinando todos os `comando/*` a cada reconexão.
 3. **Last Will + presença.** Ao conectar, publica `status=online` (retained). O *Last Will* registrado no broker publica `status=offline` (retained) automaticamente se o ESP32 desaparecer sem se despedir. Assim o painel distingue **"caixa em silêncio porque está tudo verde"** de **"caixa sumiu da rede"** — meta: refletir `offline` em < 10 s.
 
