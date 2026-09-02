@@ -1,0 +1,5 @@
+[wokwi]
+version = 1
+# Aponta para o binario que o PlatformIO compila (env esp32dev).
+firmware = '.pio/build/esp32dev/firmware.bin'
+elf = '.pio/build/esp32dev/firmware.elf'
