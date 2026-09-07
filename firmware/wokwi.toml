@@ -1,0 +1,6 @@
+# Simulacao no Wokwi. Roda o binario gerado pelo proprio PlatformIO.
+# Compilar antes com:  pio run -e wokwi
+[wokwi]
+version = 1
+firmware = '.pio/build/wokwi/firmware.bin'
+elf = '.pio/build/wokwi/firmware.elf'

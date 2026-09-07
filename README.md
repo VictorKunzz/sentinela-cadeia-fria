@@ -199,11 +199,23 @@ A confirmar na bancada (tarefa 4 do backlog). No ESP32 **qualquer GPIO pode gera
 
 Falta confirmar se o LED RGB do kit é de ânodo ou cátodo comum (muda a lógica de acionamento) e se o relé é acionado em nível alto ou baixo.
 
-📄 Detalhamento do firmware e da camada MQTT em [`docs/arquitetura-inicial.md`](docs/arquitetura-inicial.md) e [`docs/arquitetura-mqtt.md`](docs/arquitetura-mqtt.md).
+📄 Detalhamento do firmware e da camada MQTT em [`docs/arquitetura-inicial.md`](docs/arquitetura-inicial.md) e [`docs/arquitetura-mqtt.md`](docs/arquitetura-mqtt.md). O comportamento de conexão e reconexão de Wi-Fi, com o roteiro de captura de evidência, está em [`docs/evidencia-wifi.md`](docs/evidencia-wifi.md).
+
+### Credenciais de Wi-Fi
+
+O SSID e a senha **não estão no repositório**. O firmware lê `firmware/include/secrets.h`, que está no `.gitignore`; o que é versionado é o modelo [`firmware/include/secrets.h.example`](firmware/include/secrets.h.example). Antes de compilar para a bancada:
+
+```bash
+cp firmware/include/secrets.h.example firmware/include/secrets.h   # e preencher
+```
+
+O alvo de simulação (`pio run -e wokwi`) não usa esse arquivo: conecta no AP virtual aberto `Wokwi-GUEST`.
 
 ## 8. Protótipo do produto
 
 Rascunho visual do que está sendo construído — o arranjo físico na caixa térmica **e** o painel que a coordenação vê. Detalhamento e wireframes em [`docs/prototipo.md`](docs/prototipo.md).
+
+Antes da montagem física, o circuito é montado e validado no **simulador Wokwi** — que roda o ESP32 real, o firmware deste repositório e, adiante, o Wi-Fi e o MQTT. O circuito é versionado como código em [`firmware/diagram.json`](firmware/diagram.json); o roteiro de validação, as diferenças assumidas entre simulação e bancada e **o que o simulador não prova** estão em [`docs/simulacao-wokwi.md`](docs/simulacao-wokwi.md).
 
 ```
    ARRANJO FÍSICO (bancada de campo)              PAINEL DA COORDENAÇÃO (MQTT)
@@ -231,11 +243,12 @@ Cada tarefa carrega um critério de conclusão verificável, o "pronto quando". 
 | 4 | Semáforo (LED RGB) nas 3 cores no ESP32 | atuador / circuito | A definir | 3 cores alternam em sequência de 1 s | ⬜ A fazer |
 | 5 | Ler o DHT11 e imprimir T e UR no serial | sensor | A definir | 10 leituras plausíveis, 1/s | ⬜ A fazer |
 | 6 | Ler a chave de tampa com debounce | circuito | A definir | 20 aberturas geram exatamente 20 eventos | ⬜ A fazer |
-| 7 | Conectar o ESP32 ao Wi-Fi com reconexão | **Wi-Fi / reconexão** | A definir | derruba o AP e o ESP reconecta sozinho < 15 s | ⬜ A fazer |
+| 7 | Conectar o ESP32 ao Wi-Fi com reconexão | **Wi-Fi / reconexão** | Victor | derruba o AP e o ESP reconecta sozinho < 15 s | 🔄 firmware pronto, aguardando evidência de bancada — ver [`docs/evidencia-wifi.md`](docs/evidencia-wifi.md) |
 | 8 | Publicar telemetria e eventos no broker MQTT | **MQTT** | A definir | painel recebe telemetria a cada 5 s | ⬜ A fazer |
 | 9 | Assinar `comando/*` e executar com confirmação | **tópico de comando / confirmação** | A definir | comando de relé liga o sinalizador e volta ACK | ⬜ A fazer |
 | 10 | *Last Will* (`status=offline`) + reconexão MQTT | **reconexão** | A definir | matar o device marca `offline` no painel < 10 s | ⬜ A fazer |
 | 11 | Máquina de 3 estados integrando tudo | circuito / lógica | A definir | ciclo FECHADO→EXPOSTO→QUEBRA→reset validado | 📝 Rascunho a validar |
+| 11a | Montar o circuito no simulador Wokwi | circuito | A definir | todos os itens do roteiro em [`docs/simulacao-wokwi.md`](docs/simulacao-wokwi.md) passam | 🔄 Em andamento |
 | 12 | Relé + sinalizador de retenção comandado por MQTT | **atuador** | A definir | comando remoto liga/desliga o farol com ACK | ⬜ A fazer |
 | 13 | Medir o tempo de resposta do DHT11 (RISCO-01) | risco | Nicholas / Vinicius | tabela tempo × temperatura + conclusão | ⬜ A fazer |
 | 14 | Definir o limite de exposição com fonte externa | documentação | A definir | número no README com referência citada | ⬜ A fazer |

@@ -1,0 +1,80 @@
+{
+  "version": 1,
+  "author": "Sentinela de Cadeia Fria",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-esp32-devkit-v1", "id": "esp", "top": 0, "left": 0, "attrs": {} },
+
+    { "type": "wokwi-dht22", "id": "dht", "top": -120, "left": -230,
+      "attrs": { "temperature": "24", "humidity": "55" } },
+
+    { "type": "wokwi-slide-switch", "id": "tampa", "top": 70, "left": -240,
+      "attrs": { "value": "1", "bounce": "1" } },
+
+    { "type": "wokwi-pushbutton", "id": "reset", "top": 220, "left": -230,
+      "attrs": { "color": "blue", "label": "RESET" } },
+
+    { "type": "wokwi-rgb-led", "id": "semaforo", "top": -130, "left": 290,
+      "attrs": { "common": "cathode" } },
+    { "type": "wokwi-resistor", "id": "r_vermelho", "top": -40, "left": 220, "attrs": { "value": "220" } },
+    { "type": "wokwi-resistor", "id": "r_verde",    "top": -10, "left": 220, "attrs": { "value": "220" } },
+    { "type": "wokwi-resistor", "id": "r_azul",     "top":  20, "left": 220, "attrs": { "value": "220" } },
+
+    { "type": "wokwi-buzzer", "id": "buzzer", "top": 130, "left": 250,
+      "attrs": { "volume": "0.4", "mode": "smooth" } },
+
+    { "type": "wokwi-relay-module", "id": "rele", "top": -150, "left": 470,
+      "attrs": { "transistor": "pnp" } },
+
+    { "type": "wokwi-led", "id": "farol", "top": 60, "left": 660,
+      "attrs": { "color": "red", "label": "RETENCAO" } },
+    { "type": "wokwi-resistor", "id": "r_farol", "top": 130, "left": 590, "attrs": { "value": "330" } },
+
+    { "type": "wokwi-text", "id": "t1", "top": -180, "left": -240,
+      "attrs": { "text": "DHT11 no fisico / DHT22 na simulacao", "fontSize": "12" } },
+    { "type": "wokwi-text", "id": "t2", "top": 30, "left": -240,
+      "attrs": { "text": "TAMPA  esq=fechada  dir=aberta", "fontSize": "12" } },
+    { "type": "wokwi-text", "id": "t3", "top": -190, "left": 290,
+      "attrs": { "text": "SEMAFORO  verde/amarelo/vermelho", "fontSize": "12" } },
+    { "type": "wokwi-text", "id": "t4", "top": -190, "left": 470,
+      "attrs": { "text": "RELE  <- comando MQTT", "fontSize": "12" } },
+    { "type": "wokwi-text", "id": "t5", "top": 20, "left": 620,
+      "attrs": { "text": "SINALIZADOR DE RETENCAO", "fontSize": "12" } }
+  ],
+  "connections": [
+    [ "esp:TX0", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX0", "$serialMonitor:TX", "", [] ],
+
+    [ "dht:VCC", "esp:3V3",  "red",   [] ],
+    [ "dht:GND", "esp:GND.1", "black", [] ],
+    [ "dht:SDA", "esp:D4",   "green", [] ],
+
+    [ "tampa:2", "esp:D18",  "green", [] ],
+    [ "tampa:1", "esp:GND.1", "black", [] ],
+    [ "tampa:3", "esp:3V3",  "red",   [] ],
+
+    [ "reset:1.l", "esp:D19",  "green", [] ],
+    [ "reset:2.l", "esp:GND.3", "black", [] ],
+
+    [ "esp:D25", "r_vermelho:1", "red",   [] ],
+    [ "esp:D26", "r_verde:1",    "green", [] ],
+    [ "esp:D33", "r_azul:1",     "blue",  [] ],
+    [ "r_vermelho:2", "semaforo:R", "red",   [] ],
+    [ "r_verde:2",    "semaforo:G", "green", [] ],
+    [ "r_azul:2",     "semaforo:B", "blue",  [] ],
+    [ "semaforo:COM", "esp:GND.2", "black", [] ],
+
+    [ "esp:D27",  "buzzer:2", "purple", [] ],
+    [ "buzzer:1", "esp:GND.2", "black",  [] ],
+
+    [ "esp:D23",  "rele:IN",  "orange", [] ],
+    [ "rele:VCC", "esp:VIN",  "red",    [] ],
+    [ "rele:GND", "esp:GND.3", "black", [] ],
+
+    [ "rele:COM", "esp:VIN",     "red",   [] ],
+    [ "rele:NO",  "r_farol:1",   "red",   [] ],
+    [ "r_farol:2", "farol:A",    "red",   [] ],
+    [ "farol:C",  "esp:GND.3",   "black", [] ]
+  ],
+  "dependencies": {}
+}

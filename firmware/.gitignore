@@ -3,3 +3,7 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
+
+# Credenciais de Wi-Fi - NUNCA commitar. O modelo versionado e secrets.h.example.
+include/secrets.h
+src/secrets.h
