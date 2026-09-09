@@ -1,12 +1,46 @@
 {
   "version": 1,
-  "author": "Lucas Mendonca",
+  "author": "Equipe Sentinela de Cadeia Fria",
   "editor": "wokwi",
   "parts": [
-    { "type": "wokwi-esp32-devkit-v1", "id": "esp", "top": 0, "left": 0, "attrs": {} }
+    { "type": "wokwi-esp32-devkit-v1", "id": "esp", "top": 0, "left": 0, "attrs": {} },
+
+    { "type": "wokwi-pushbutton", "id": "btnTampa", "top": -100, "left": 250,
+      "attrs": { "color": "green", "label": "Tampa" } },
+    { "type": "wokwi-pushbutton", "id": "btnReset", "top": -20, "left": 250,
+      "attrs": { "color": "red", "label": "Reset" } },
+
+    { "type": "wokwi-rgb-led", "id": "semaforo", "top": 80, "left": 260,
+      "attrs": { "common": "cathode", "label": "Semaforo" } },
+
+    { "type": "wokwi-buzzer", "id": "bz", "top": 180, "left": 250,
+      "attrs": { "volume": "0.1" } },
+
+    { "type": "wokwi-led", "id": "ledRele", "top": 260, "left": 260,
+      "attrs": { "color": "yellow", "label": "Sinalizador" } },
+    { "type": "wokwi-resistor", "id": "rRele", "top": 300, "left": 190,
+      "attrs": { "value": "220" } }
   ],
   "connections": [
     [ "esp:TX0", "$serialMonitor:RX", "", [] ],
-    [ "esp:RX0", "$serialMonitor:TX", "", [] ]
+    [ "esp:RX0", "$serialMonitor:TX", "", [] ],
+
+    [ "btnTampa:1.l", "esp:D18", "green", [] ],
+    [ "btnTampa:2.l", "esp:GND.1", "black", [] ],
+
+    [ "btnReset:1.l", "esp:D19", "red", [] ],
+    [ "btnReset:2.l", "esp:GND.1", "black", [] ],
+
+    [ "semaforo:R", "esp:D25", "red", [] ],
+    [ "semaforo:G", "esp:D26", "green", [] ],
+    [ "semaforo:B", "esp:D33", "blue", [] ],
+    [ "semaforo:COM", "esp:GND.2", "black", [] ],
+
+    [ "bz:1", "esp:D27", "purple", [] ],
+    [ "bz:2", "esp:GND.2", "black", [] ],
+
+    [ "esp:D23", "rRele:1", "orange", [] ],
+    [ "rRele:2", "ledRele:A", "orange", [] ],
+    [ "ledRele:C", "esp:GND.3", "black", [] ]
   ]
 }
