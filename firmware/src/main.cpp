@@ -19,8 +19,9 @@ constexpr uint8_t PINO_RELE   = 23;
 
 // LED RGB: true = catodo comum (HIGH acende). Ajustar conforme a bancada.
 constexpr bool LED_ATIVO_ALTO = true;
-// Modulo rele: muitos sao active-low. Ajustar conforme o modulo.
-constexpr bool RELE_ATIVO_ALTO = true;
+// Modulo rele de 2 canais, opto-isolado: confirmado active-low na bancada.
+// Em repouso o contato fecha com nivel baixo, entao "ligado" escreve LOW.
+constexpr bool RELE_ATIVO_ALTO = false;
 // Buzzer: true se for passivo (precisa de tone()); false se for ativo.
 constexpr bool     BUZZER_PASSIVO  = false;
 constexpr uint16_t BUZZER_FREQ_HZ  = 2000;
@@ -417,6 +418,12 @@ void aoReceberComando(char* topico, byte* dados, unsigned int tamanho) {
 }
 
 void setup() {
+  // Rele antes de tudo: o modulo e active-low, entao o nivel de repouso vai
+  // para o latch do pino ANTES de ele virar saida. Sem isso o contato fica
+  // fechado durante todo o boot e o sinalizador da um pisco a cada energizacao.
+  setRele(false);
+  pinMode(PINO_RELE, OUTPUT);
+
   Serial.begin(115200);
   delay(500);
   Serial.println();
@@ -426,14 +433,12 @@ void setup() {
   pinMode(PINO_LED_G, OUTPUT);
   pinMode(PINO_LED_B, OUTPUT);
   pinMode(PINO_BUZZER, OUTPUT);
-  pinMode(PINO_RELE, OUTPUT);
 
   tampa.iniciar(PINO_TAMPA);
   botaoReset.iniciar(PINO_RESET);
   dht.begin();
 
   buzzer(false);
-  setRele(false);
   irParaFechado();
 
   WiFi.mode(WIFI_STA);   // estacao (cliente); nao vira ponto de acesso

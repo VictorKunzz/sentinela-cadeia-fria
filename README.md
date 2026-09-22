@@ -194,10 +194,10 @@ A 20 °C consome 1 unidade por segundo; a 30 °C, 2 unidades; a 40 °C, 3. O or�
 | GPIO19 | Botão de reset local | `INPUT_PULLUP` |
 | GPIO27 | Buzzer | LEDC/`tone` — conferir se ativo ou passivo |
 | GPIO25 / GPIO26 / GPIO33 | LED RGB — vermelho / verde / azul | **cátodo comum** (comum no GND, um resistor por cor) |
-| GPIO23 | Relé (sinalizador de retenção) | saída digital → `IN1` do módulo; `VCC` do módulo em 5 V/VIN |
+| GPIO23 | Relé (sinalizador de retenção) | saída digital → `IN1` do módulo; `VCC` em 5 V/VIN; **acionamento em nível baixo** |
 | (ADC1: GPIO34/35/32) | reservado p/ sensor analógico do plano B | ver RISCO-01 revisitado |
 
-O LED RGB foi confirmado como **cátodo comum**: o firmware aciona em nível alto (`LED_ATIVO_ALTO = true`). Falta confirmar se o módulo relé aciona em nível alto ou baixo — muitos módulos opto-isolados são *active-low*, e o firmware já prevê a inversão numa única constante (`RELE_ATIVO_ALTO`), sem alterar a lógica.
+O LED RGB foi confirmado como **cátodo comum**: o firmware aciona em nível alto (`LED_ATIVO_ALTO = true`). O módulo relé foi confirmado como ***active-low***, comportamento comum em módulos opto-isolados: o contato fecha com nível **baixo** (`RELE_ATIVO_ALTO = false`). Como o GPIO23 nasce em nível baixo no *boot*, o nível de repouso é gravado no pino antes de ele virar saída — caso contrário o sinalizador daria um pisco a cada energização da placa.
 
 📄 Detalhamento do firmware e da camada MQTT em [`docs/arquitetura-inicial.md`](docs/arquitetura-inicial.md) e [`docs/arquitetura-mqtt.md`](docs/arquitetura-mqtt.md).
 

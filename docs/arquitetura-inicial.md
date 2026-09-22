@@ -189,12 +189,12 @@ Os tempos são relativos à energização da placa (`millis()`), não a um reló
 **Confirmado na bancada:**
 
 - o LED RGB do kit é de **cátodo comum** — comum no GND, um resistor por cor. O firmware aciona em nível alto (`LED_ATIVO_ALTO = true`).
+- o módulo relé é ***active-low***: fecha o contato em nível **baixo** (`RELE_ATIVO_ALTO = false`). Como o GPIO23 nasce baixo no *boot*, o nível de repouso é escrito antes de o pino virar saída, senão o contato fica fechado durante toda a inicialização.
 - os pinos escolhidos evitam os *strapping pins* do ESP32 (GPIO0/2/12/15) e os *input-only* (GPIO34–39).
 
 **Ainda a confirmar:**
 
 - o buzzer é **ativo** (basta nível alto) ou **passivo** (precisa de `tone()`/LEDC)? Muda a tarefa 15.
-- o módulo relé aciona em **nível alto ou baixo**? Muitos módulos são *active-low*. O firmware isola a resposta na constante `RELE_ATIVO_ALTO`.
 
 ## O que ficou de fora, e por quê
 
