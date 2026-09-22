@@ -75,13 +75,13 @@ O projeto **migra da BlackBoard UNO R3 para o ESP32**, que traz Wi-Fi nativo - a
 
 | Componente | Modelo / especificação | Função no projeto | Situação |
 |---|---|---|---|
-| **ESP32 DevKit V1** | Dual-core 240 MHz, Wi-Fi 2,4 GHz, ADC 12 bits | Controlador + conectividade | ❌ **a adquirir** (fora do kit) |
+| **ESP32 DevKit V1** | Dual-core 240 MHz, Wi-Fi 2,4 GHz, ADC 12 bits | Controlador + conectividade | ✅ adquirido e em uso |
 | Sensor DHT11 | digital, ±2 °C, 1 leitura/s | Temperatura e umidade do ambiente | ✅ no kit |
 | LED RGB | cátodo/ânodo comum (a confirmar) | Semáforo de estado (verde / amarelo / vermelho) | ✅ no kit |
 | Chave momentânea | tátil 6 mm | Sensor de tampa aberta | ✅ no kit |
 | Chave momentânea (2ª) | tátil 6 mm | Botão de reset local após quebra | ✅ no kit |
 | Buzzer | ativo ou passivo (a confirmar) | Alarme sonoro (local **e** comandável) | ✅ no kit |
-| **Módulo relé 1 canal** | 5 V, opto-isolado, saída a seco | Aciona o **sinalizador de retenção** (comando remoto) | ❌ **a adquirir** |
+| **Módulo relé 1 canal** | 5 V, opto-isolado, saída a seco | Aciona o **sinalizador de retenção** (comando remoto) | ✅ adquirido e montado |
 | **Sinalizador de retenção** | lâmpada/torre de sinalização 5–12 V | Marca fisicamente a caixa "sob suspeita, reter" | ❌ **a adquirir** |
 | Fonte / alimentação | USB 5 V ou bateria + regulador 3,3 V | Alimentação do ESP32 e periféricos | ⚠️ definir (bancada USB na N1) |
 | Protoboard 400 pontos + jumpers | — | Montagem | ✅ no kit |
@@ -227,16 +227,16 @@ Cada tarefa carrega um critério de conclusão verificável, o "pronto quando". 
 |---|---|---|---|---|---|
 | 1 | Criar repositório e adicionar colaboradores | documentação | Victor | todos conseguem dar push | ✅ concluída |
 | 2 | README inicial (Aula 02) | documentação | Victor | os 10 itens exigidos presentes | ✅ concluída |
-| 3 | Conferir e fotografar o kit + listar o que falta comprar | hardware | A definir | lista com quantidades em `docs/` | ⬜ A fazer |
-| 4 | Semáforo (LED RGB) nas 3 cores no ESP32 | atuador / circuito | Lucas | 3 cores alternam em sequência de 1 s | 🔄 em andamento |
-| 5 | Ler o DHT11 e imprimir T e UR no serial | sensor | Lucas | 10 leituras plausíveis, 1/s | 🔄 em andamento |
-| 6 | Ler a chave de tampa com debounce | circuito | Lucas | 20 aberturas geram exatamente 20 eventos | 🔄 em andamento |
-| 7 | Conectar o ESP32 ao Wi-Fi com reconexão | **Wi-Fi / reconexão** | Lucas | derruba o AP e o ESP reconecta sozinho < 15 s | 🔄 em andamento |
-| 8 | Publicar telemetria e eventos no broker MQTT | **MQTT** | A definir | painel recebe telemetria a cada 5 s | ⬜ A fazer |
-| 9 | Assinar `comando/*` e executar com confirmação | **tópico de comando / confirmação** | A definir | comando de relé liga o sinalizador e volta ACK | ⬜ A fazer |
-| 10 | *Last Will* (`status=offline`) + reconexão MQTT | **reconexão** | A definir | matar o device marca `offline` no painel < 10 s | ⬜ A fazer |
-| 11 | Máquina de 3 estados integrando tudo | circuito / lógica | Lucas | ciclo FECHADO→EXPOSTO→QUEBRA→reset validado | 🔄 em andamento |
-| 12 | Relé + sinalizador de retenção comandado por MQTT | **atuador** | A definir | comando remoto liga/desliga o farol com ACK | ⬜ A fazer |
+| 3 | Conferir e fotografar o kit + listar o que falta comprar | hardware | Victor | lista com quantidades em `docs/` | 🔄 em andamento |
+| 4 | Semáforo (LED RGB) nas 3 cores no ESP32 | atuador / circuito | Lucas | 3 cores alternam em sequência de 1 s | ✅ concluída |
+| 5 | Ler o DHT11 e imprimir T e UR no serial | sensor | Lucas | 10 leituras plausíveis, 1/s | ✅ concluída |
+| 6 | Ler a chave de tampa com debounce | circuito | Lucas | 20 aberturas geram exatamente 20 eventos | ✅ concluída |
+| 7 | Conectar o ESP32 ao Wi-Fi com reconexão | **Wi-Fi / reconexão** | Lucas | derruba o AP e o ESP reconecta sozinho < 15 s | ✅ concluída |
+| 8 | Publicar telemetria e eventos no broker MQTT | **MQTT** | Lucas | painel recebe telemetria a cada 5 s | ✅ concluída |
+| 9 | Assinar `comando/*` e executar com confirmação | **tópico de comando / confirmação** | Lucas | comando de relé liga o sinalizador e volta ACK | ✅ concluída |
+| 10 | *Last Will* (`status=offline`) + reconexão MQTT | **reconexão** | Lucas | matar o device marca `offline` no painel (~22 s com keep-alive de 15 s) | ✅ concluída |
+| 11 | Máquina de 3 estados integrando tudo | circuito / lógica | Lucas | ciclo FECHADO→EXPOSTO→QUEBRA→reset validado | ✅ concluída |
+| 12 | Relé + sinalizador de retenção comandado por MQTT | **atuador** | Lucas / Victor | comando remoto liga/desliga o farol com ACK | 🔄 em andamento |
 | 13 | Medir o tempo de resposta do DHT11 (RISCO-01) | risco | Nicholas / Vinicius | tabela tempo × temperatura + conclusão | ⬜ A fazer |
 | 14 | Definir o limite de exposição com fonte externa | documentação | A definir | número no README com referência citada | ⬜ A fazer |
 | 15 | Padrão sonoro do alarme no buzzer | atuador | A definir | distinguível de um bipe comum a 2 m | ⬜ A fazer |
@@ -266,11 +266,13 @@ A conectividade que a N1 exige colide com a realidade do uso extramuros: **escol
 
 **Decisão para a N1:** o protótipo é validado em bancada com **broker Mosquitto local** (PC/Raspberry Pi) sobre Wi-Fi controlado. Em campo, o caminho previsto é **hotspot do celular do técnico**; store-and-forward (buffer local até reconectar) fica como evolução da N2. É por isso que a reconexão automática e o *Last Will* são requisitos de primeira classe, e não detalhe — a rede **vai** cair, e o sistema precisa se comportar quando isso acontecer.
 
-## 11. Feedback da Aula 04
+## 11. O que a Aula 04 mudou no projeto
 
-- **O que o professor observou/perguntou:** _(preencher)_
-- **O que isso confirma no nosso plano:** _(preencher)_
-- **O que muda a partir disso:** _(preencher)_
+A Aula 04 (ADC e conectividade) provocou a revisão mais profunda que o projeto teve até aqui. Três decisões saíram dela:
+
+- **Troca de placa.** A entrega da Aula 02 previa uma UNO R3 operando offline, com o registro sendo lido depois no serial. Com a exigência de conectividade, migramos para o **ESP32**, que traz Wi-Fi nativo — e isso reescreveu a arquitetura inteira da seção 7, não só a lista de componentes.
+- **Contrato de rede antes do código.** Em vez de sair publicando tópicos conforme a necessidade aparecesse, escrevemos primeiro o contrato completo em [`docs/arquitetura-mqtt.md`](docs/arquitetura-mqtt.md): tópicos, QoS, retenção, formatos JSON e comportamento de reconexão. O firmware veio depois, implementando o que já estava acordado — de modo que dispositivo e painel dependem do contrato, não um do outro.
+- **A restrição do ADC entrou no plano B.** Com o Wi-Fi ativo, o ADC2 do ESP32 fica indisponível. Como o DHT11 é digital, o sensor principal não é afetado; mas ficou fixado que qualquer sensor analógico de contingência terá de usar pinos do **ADC1** (GPIO34/35/32). Ver RISCO-01.
 
 ## 12. Limitações assumidas nesta etapa
 
@@ -286,3 +288,89 @@ Registradas de propósito, são escolhas conscientes, não esquecimentos.
 2. **Broker.** Para a N1, é aceitável um broker público de teste (ex.: `test.mosquitto.org`) durante o desenvolvimento, entregando com Mosquitto local na demonstração?
 3. **Rede em campo.** O cenário de hotspot do celular é aceitável como resposta ao RISCO-02 na N1, ficando o buffer offline para a N2?
 4. **Rigor do modelo.** O "orçamento de exposição" é uma simplificação nossa da carga térmica. Basta estar declarado abertamente como heurística assumida?
+
+## 14. Como executar
+
+### Pré-requisitos
+
+- **VS Code** com a extensão **PlatformIO**
+- Placa **ESP32** (`esp32dev`) e um cabo USB **de dados** (cabo só de carga não serve)
+- Driver **CP210x** (Silicon Labs) — sem ele a placa não aparece como porta COM e o upload falha com *write timeout*
+- Um **broker MQTT** alcançável: Mosquitto local na mesma rede, ou um broker público de teste
+
+### 1. Clonar e abrir
+
+```bash
+git clone https://github.com/VictorKunzz/sentinela-cadeia-fria.git
+```
+
+Abra a pasta **`firmware/`** no VS Code — é onde está o `platformio.ini`. Abrir a raiz do repositório faz o PlatformIO não encontrar o projeto.
+
+### 2. Criar o `secrets.h`
+
+O arquivo com credenciais **não é versionado**. Copie o modelo e preencha:
+
+```bash
+cp firmware/include/secrets.example.h firmware/include/secrets.h
+```
+
+```cpp
+#define WIFI_SSID      "sua_rede_2.4GHz"
+#define WIFI_PASSWORD  "sua_senha"
+
+#define MQTT_HOST      "192.168.0.10"   // IP do PC na LAN, nunca "localhost"
+#define MQTT_PORT      1883
+
+#define MQTT_CLIENT_ID "sentinela-cf01"
+```
+
+Três detalhes que costumam custar tempo:
+
+- O ESP32 **só opera em 2,4 GHz** e não suporta redes com login (WPA2-Enterprise). Hotspot de celular em 2,4 GHz resolve.
+- `MQTT_HOST` **nunca é `localhost`** — para o ESP32, `localhost` é ele mesmo. Use o IP do computador na LAN.
+- Dois clientes com o **mesmo `MQTT_CLIENT_ID`** se derrubam alternadamente no broker. Se mais de uma pessoa for testar, cada uma usa um sufixo próprio.
+
+### 3. Compilar e gravar
+
+Na barra do PlatformIO: **Build** (✓) e depois **Upload** (→). O monitor serial roda a **115200**.
+
+Esperado no serial ao ligar:
+
+```
+=== Sentinela de Cadeia Fria ===
+Pronto. Estado inicial: FECHADO.
+Wi-Fi: conectado. IP 192.168.0.42  RSSI -54 dBm
+MQTT: conectado. status=online
+```
+
+### 4. Acompanhar pelo painel
+
+Qualquer cliente MQTT assinando `sentinela/cadeia-fria/#` serve. Pela linha de comando:
+
+```bash
+mosquitto_sub -h <broker> -p 1883 -t "sentinela/#" -v
+```
+
+Para enviar um comando remoto e ver a confirmação voltar:
+
+```bash
+mosquitto_pub -h <broker> -p 1883 -t "sentinela/cadeia-fria/comando/rele" -m '{"acao":"ligar"}'
+```
+
+O contrato completo de tópicos está em [`docs/arquitetura-mqtt.md`](docs/arquitetura-mqtt.md).
+
+### 5. Rodar sem hardware (opcional)
+
+O repositório já traz `firmware/wokwi.toml` e `firmware/diagram.json`. Instale a extensão **Wokwi** no VS Code, ative a licença gratuita e use `F1 → Wokwi: Start Simulator`.
+
+No simulador, o `secrets.h` precisa de `WIFI_SSID "Wokwi-GUEST"` com senha vazia e um **broker público** — a rede virtual do Wokwi alcança a internet, mas não a LAN do seu computador.
+
+### Ajustes conforme as peças da bancada
+
+Três constantes no topo de `firmware/src/main.cpp` dependem dos componentes que você tem em mãos. Se o comportamento sair invertido, é uma delas:
+
+| Constante | Inverta quando |
+|---|---|
+| `LED_ATIVO_ALTO` | o LED RGB for de **ânodo comum** (cores trocadas ou sempre acesas) |
+| `RELE_ATIVO_ALTO` | o módulo relé for **active-low** (aciona sozinho no boot) |
+| `BUZZER_PASSIVO` | o buzzer ficar **mudo** (é passivo e precisa de `tone()`) |
