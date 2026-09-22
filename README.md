@@ -201,6 +201,8 @@ Falta confirmar se o LED RGB do kit é de ânodo ou cátodo comum (muda a lógic
 
 📄 Detalhamento do firmware e da camada MQTT em [`docs/arquitetura-inicial.md`](docs/arquitetura-inicial.md) e [`docs/arquitetura-mqtt.md`](docs/arquitetura-mqtt.md).
 
+🧪 O que foi efetivamente exercitado no sistema — com as saídas capturadas, a conferência da fórmula do orçamento contra medições reais e o que **ainda não foi testado** — está em [`docs/testes.md`](docs/testes.md).
+
 ## 8. Protótipo do produto
 
 Rascunho visual do que está sendo construído — o arranjo físico na caixa térmica **e** o painel que a coordenação vê. Detalhamento e wireframes em [`docs/prototipo.md`](docs/prototipo.md).
