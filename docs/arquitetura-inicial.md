@@ -183,15 +183,18 @@ Os tempos são relativos à energização da placa (`millis()`), não a um reló
 | GPIO25 | LED RGB — vermelho | LEDC (PWM) |
 | GPIO26 | LED RGB — verde | LEDC (PWM) |
 | GPIO33 | LED RGB — azul | LEDC (PWM) — reservado, não usado no semáforo |
-| GPIO23 | Relé (sinalizador de retenção) | saída digital; conferir acionamento em nível alto/baixo |
+| GPIO23 | Relé (sinalizador de retenção) | saída digital → `IN1` do módulo de 2 canais; `VCC` do módulo em 5 V/VIN |
 | GPIO34/35/32 | reservado (ADC1) p/ sensor analógico do plano B | ver RISCO-01 |
 
-**A confirmar na bancada:**
+**Confirmado na bancada:**
 
-- o LED RGB do kit é de **ânodo comum** ou **cátodo comum**? Inverte a lógica de acionamento.
+- o LED RGB do kit é de **cátodo comum** — comum no GND, um resistor por cor. O firmware aciona em nível alto (`LED_ATIVO_ALTO = true`).
+- os pinos escolhidos evitam os *strapping pins* do ESP32 (GPIO0/2/12/15) e os *input-only* (GPIO34–39).
+
+**Ainda a confirmar:**
+
 - o buzzer é **ativo** (basta nível alto) ou **passivo** (precisa de `tone()`/LEDC)? Muda a tarefa 15.
-- o módulo relé aciona em **nível alto ou baixo**? Muitos módulos são *active-low*.
-- os pinos escolhidos evitam os *strapping pins* do ESP32 (GPIO0/2/12/15) e os *input-only* (GPIO34–39). Confirmar no roteamento final.
+- o módulo relé aciona em **nível alto ou baixo**? Muitos módulos são *active-low*. O firmware isola a resposta na constante `RELE_ATIVO_ALTO`.
 
 ## O que ficou de fora, e por quê
 

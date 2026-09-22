@@ -75,21 +75,21 @@ O projeto **migra da BlackBoard UNO R3 para o ESP32**, que traz Wi-Fi nativo - a
 
 | Componente | Modelo / especificação | Função no projeto | Situação |
 |---|---|---|---|
-| **ESP32 DevKit V1** | Dual-core 240 MHz, Wi-Fi 2,4 GHz, ADC 12 bits | Controlador + conectividade | ❌ **a adquirir** (fora do kit) |
-| Sensor DHT11 | digital, ±2 °C, 1 leitura/s | Temperatura e umidade do ambiente | ✅ no kit |
-| LED RGB | cátodo/ânodo comum (a confirmar) | Semáforo de estado (verde / amarelo / vermelho) | ✅ no kit |
-| Chave momentânea | tátil 6 mm | Sensor de tampa aberta | ✅ no kit |
-| Chave momentânea (2ª) | tátil 6 mm | Botão de reset local após quebra | ✅ no kit |
-| Buzzer | ativo ou passivo (a confirmar) | Alarme sonoro (local **e** comandável) | ✅ no kit |
-| **Módulo relé 1 canal** | 5 V, opto-isolado, saída a seco | Aciona o **sinalizador de retenção** (comando remoto) | ❌ **a adquirir** |
-| **Sinalizador de retenção** | lâmpada/torre de sinalização 5–12 V | Marca fisicamente a caixa "sob suspeita, reter" | ❌ **a adquirir** |
+| **ESP32 DevKit V1** | Dual-core 240 MHz, Wi-Fi 2,4 GHz, ADC 12 bits | Controlador + conectividade | ✅ **adquirido** (fora do kit) |
+| Sensor DHT11 | digital, ±2 °C, 1 leitura/s | Temperatura e umidade do ambiente | ✅ no kit, montado |
+| LED RGB | **cátodo comum** (confirmado na bancada) | Semáforo de estado (verde / amarelo / vermelho) | ✅ no kit, montado |
+| Chave momentânea | tátil 6 mm | Sensor de tampa aberta | ✅ no kit, montado |
+| Chave momentânea (2ª) | tátil 6 mm | Botão de reset local após quebra | ✅ no kit, montado |
+| Buzzer | ativo ou passivo (a confirmar) | Alarme sonoro (local **e** comandável) | ✅ no kit, montado |
+| **Módulo relé 2 canais** | 5 V, opto-isolado, saída a seco — **1 canal usado** | Aciona o **sinalizador de retenção** (comando remoto) | ✅ **adquirido** |
+| **Sinalizador de retenção** | lâmpada/torre de sinalização 5–12 V | Marca fisicamente a caixa "sob suspeita, reter" | ❌ não adquirido — ver [Limitações](#12-limitações-assumidas-nesta-etapa) |
 | Fonte / alimentação | USB 5 V ou bateria + regulador 3,3 V | Alimentação do ESP32 e periféricos | ⚠️ definir (bancada USB na N1) |
-| Protoboard 400 pontos + jumpers | — | Montagem | ✅ no kit |
-| Resistores | 220–330 Ω (LED RGB) | Limitação de corrente do LED RGB | ⚠️ conferir valores disponíveis |
+| Protoboard 400 pontos + jumpers | — | Montagem | ✅ no kit, montado |
+| Resistores | 3 × 220–330 Ω no LED RGB (um por cor) | Limitação de corrente do LED RGB | ✅ montados |
 | Termômetro digital de referência | resposta rápida | Validar o DHT11 (ver risco 01) | ❌ **não temos - providenciar** |
 | Caixa térmica pequena | — | Corpo do protótipo | ❌ a providenciar pelo grupo |
 
-Conferir o inventário completo e o que falta adquirir é a tarefa 3 do backlog.
+O circuito está **montado em protoboard** e a pinagem confere com a tabela da seção 7. O único item da lista que não foi adquirido é o farol do sinalizador — o relé que o acionaria está montado e funcional.
 
 > **Sensor real:** DHT11 (o do kit), com plano B de troca condicionado ao experimento do RISCO-01.
 > **Atuadores reais:** (a) **buzzer + LED RGB** como alerta local, agora também comandáveis remotamente; (b) **relé acionando o sinalizador de retenção**, atuador físico novo, comandado exclusivamente por MQTT com confirmação.
@@ -181,11 +181,11 @@ consumo por segundo = 1 + (T_ambiente − 20 °C) / 10
 
 A 20 °C consome 1 unidade por segundo; a 30 °C, 2 unidades; a 40 °C, 3. O orçamento total parte de um valor provisório de **120 unidades**, equivalente a dois minutos abertos em ambiente ameno.
 
-> **O número 120 é provisório e não tem respaldo externo ainda.** Redefini-lo com base em referência real é a tarefa 9 do backlog, e é a primeira dúvida dirigida ao professor.
+> **O número 120 é provisório e não tem respaldo externo ainda.** Redefini-lo com base em referência real é a tarefa 14 do backlog, e é a primeira dúvida dirigida ao professor.
 
-### Pinagem preliminar (ESP32)
+### Pinagem (ESP32)
 
-A confirmar na bancada (tarefa 4 do backlog). No ESP32 **qualquer GPIO pode gerar PWM** via periférico LEDC, então a escolha de pinos é mais livre que na UNO - evitamos apenas os pinos de *boot/strapping* e os *input-only*.
+**Confirmada na bancada** — o circuito está montado nesses pinos. No ESP32 **qualquer GPIO pode gerar PWM** via periférico LEDC, então a escolha de pinos é mais livre que na UNO - evitamos apenas os pinos de *boot/strapping* e os *input-only*.
 
 | GPIO | Componente | Observação |
 |---|---|---|
@@ -193,11 +193,11 @@ A confirmar na bancada (tarefa 4 do backlog). No ESP32 **qualquer GPIO pode gera
 | GPIO18 | Chave de tampa | `INPUT_PULLUP` |
 | GPIO19 | Botão de reset local | `INPUT_PULLUP` |
 | GPIO27 | Buzzer | LEDC/`tone` — conferir se ativo ou passivo |
-| GPIO25 / GPIO26 / GPIO33 | LED RGB — vermelho / verde / azul | LEDC (PWM) |
-| GPIO23 | Relé (sinalizador de retenção) | saída digital; relé opto-isolado |
+| GPIO25 / GPIO26 / GPIO33 | LED RGB — vermelho / verde / azul | **cátodo comum** (comum no GND, um resistor por cor) |
+| GPIO23 | Relé (sinalizador de retenção) | saída digital → `IN1` do módulo; `VCC` do módulo em 5 V/VIN |
 | (ADC1: GPIO34/35/32) | reservado p/ sensor analógico do plano B | ver RISCO-01 revisitado |
 
-Falta confirmar se o LED RGB do kit é de ânodo ou cátodo comum (muda a lógica de acionamento) e se o relé é acionado em nível alto ou baixo.
+O LED RGB foi confirmado como **cátodo comum**: o firmware aciona em nível alto (`LED_ATIVO_ALTO = true`). Falta confirmar se o módulo relé aciona em nível alto ou baixo — muitos módulos opto-isolados são *active-low*, e o firmware já prevê a inversão numa única constante (`RELE_ATIVO_ALTO`), sem alterar a lógica.
 
 📄 Detalhamento do firmware e da camada MQTT em [`docs/arquitetura-inicial.md`](docs/arquitetura-inicial.md) e [`docs/arquitetura-mqtt.md`](docs/arquitetura-mqtt.md).
 
@@ -227,16 +227,16 @@ Cada tarefa carrega um critério de conclusão verificável, o "pronto quando". 
 |---|---|---|---|---|---|
 | 1 | Criar repositório e adicionar colaboradores | documentação | Victor | todos conseguem dar push | ✅ concluída |
 | 2 | README inicial (Aula 02) | documentação | Victor | os 10 itens exigidos presentes | ✅ concluída |
-| 3 | Conferir e fotografar o kit + listar o que falta comprar | hardware | A definir | lista com quantidades em `docs/` | ⬜ A fazer |
+| 3 | Conferir e fotografar o kit + listar o que falta comprar | hardware | A definir | lista com quantidades em `docs/` | 🔄 em andamento (circuito montado e fotografado; falta o registro em `docs/`) |
 | 4 | Semáforo (LED RGB) nas 3 cores no ESP32 | atuador / circuito | Lucas | 3 cores alternam em sequência de 1 s | 🔄 em andamento |
 | 5 | Ler o DHT11 e imprimir T e UR no serial | sensor | Lucas | 10 leituras plausíveis, 1/s | 🔄 em andamento |
 | 6 | Ler a chave de tampa com debounce | circuito | Lucas | 20 aberturas geram exatamente 20 eventos | 🔄 em andamento |
 | 7 | Conectar o ESP32 ao Wi-Fi com reconexão | **Wi-Fi / reconexão** | Lucas | derruba o AP e o ESP reconecta sozinho < 15 s | 🔄 em andamento |
-| 8 | Publicar telemetria e eventos no broker MQTT | **MQTT** | A definir | painel recebe telemetria a cada 5 s | ⬜ A fazer |
-| 9 | Assinar `comando/*` e executar com confirmação | **tópico de comando / confirmação** | A definir | comando de relé liga o sinalizador e volta ACK | ⬜ A fazer |
-| 10 | *Last Will* (`status=offline`) + reconexão MQTT | **reconexão** | A definir | matar o device marca `offline` no painel < 10 s | ⬜ A fazer |
+| 8 | Publicar telemetria e eventos no broker MQTT | **MQTT** | A definir | painel recebe telemetria a cada 5 s | 🔄 em andamento (firmware pronto, validado em simulador) |
+| 9 | Assinar `comando/*` e executar com confirmação | **tópico de comando / confirmação** | A definir | comando de relé liga o sinalizador e volta ACK | 🔄 em andamento (firmware pronto, validado em simulador) |
+| 10 | *Last Will* (`status=offline`) + reconexão MQTT | **reconexão** | A definir | matar o device marca `offline` no painel < 10 s | 🔄 em andamento (firmware pronto, validado em simulador) |
 | 11 | Máquina de 3 estados integrando tudo | circuito / lógica | Lucas | ciclo FECHADO→EXPOSTO→QUEBRA→reset validado | 🔄 em andamento |
-| 12 | Relé + sinalizador de retenção comandado por MQTT | **atuador** | A definir | comando remoto liga/desliga o farol com ACK | ⬜ A fazer |
+| 12 | Relé + sinalizador de retenção comandado por MQTT | **atuador** | A definir | comando remoto liga/desliga o relé com ACK | 🔄 em andamento (firmware pronto; falta confirmar nível de acionamento do módulo na bancada) |
 | 13 | Medir o tempo de resposta do DHT11 (RISCO-01) | risco | Nicholas / Vinicius | tabela tempo × temperatura + conclusão | ⬜ A fazer |
 | 14 | Definir o limite de exposição com fonte externa | documentação | A definir | número no README com referência citada | ⬜ A fazer |
 | 15 | Padrão sonoro do alarme no buzzer | atuador | A definir | distinguível de um bipe comum a 2 m | ⬜ A fazer |
@@ -244,9 +244,9 @@ Cada tarefa carrega um critério de conclusão verificável, o "pronto quando". 
 
 **Legenda:** ⬜ não iniciada · 🔄 em andamento · 📝 rascunho existe, aguardando validação · ✅ concluída
 
-> **O que já existe em firmware (tarefas 4–7 e 11).** O `firmware/src/main.cpp` implementa e compila: semáforo RGB, leitura do DHT11 com tratamento de `NaN`, debounce reutilizável das chaves, máquina de estados `FECHADO`/`EXPOSTO`/`QUEBRA` com orçamento térmico, e conexão Wi-Fi com reconexão automática não-bloqueante (`manterWifi()`). A conexão Wi-Fi já foi executada e teve a obtenção de IP registrada no monitor serial.
+> **O que já existe em firmware (tarefas 4–12).** O `firmware/src/main.cpp` implementa e compila a camada física e a camada de rede inteiras: semáforo RGB, leitura do DHT11 com tratamento de `NaN`, debounce reutilizável das chaves, máquina de estados `FECHADO`/`EXPOSTO`/`QUEBRA` com orçamento térmico, conexão Wi-Fi com reconexão automática não-bloqueante (`manterWifi()`), cliente MQTT com *Last Will* e reconexão com backoff exponencial (`manterMqtt()`), telemetria periódica, eventos discretos, assinatura de `comando/+` e confirmação de cada comando — incluindo o acionamento do relé.
 >
-> Essas tarefas seguem como **em andamento**, e não concluídas, porque os critérios de "pronto quando" exigem **validação com o circuito montado** — que ainda não aconteceu. O caso da tarefa 7 é o mais próximo de fechar: falta apenas derrubar o ponto de acesso com a placa em bancada para comprovar a reconexão, já que o simulador não permite provocar a queda da rede.
+> Essas tarefas seguem como **em andamento**, e não concluídas, porque os critérios de "pronto quando" exigem **validação com o circuito montado**, que só agora passou a ser possível. A camada MQTT foi exercitada contra broker público em simulador; falta repetir com o hardware real e com Mosquitto local. Nas tarefas 7 e 10, especificamente, falta provocar a queda da rede com a placa em bancada — o simulador não permite derrubar o ponto de acesso.
 
 ## 10. Primeiro risco técnico (revisitado)
 
@@ -279,6 +279,8 @@ Registradas de propósito, são escolhas conscientes, não esquecimentos.
 - **Rede dependente de infraestrutura local.** A N1 assume um broker Mosquitto acessível por Wi-Fi (bancada) ou hotspot (campo). O funcionamento *offline com buffer* fica declarado como evolução da N2 — ver RISCO-02.
 - **Sem persistência no dispositivo.** Não há cartão SD nem RTC no arranjo. O histórico vive no broker/painel; os tempos do device são relativos à energização (`millis()`), não a um relógio real.
 - **Não medimos a temperatura interna da caixa.** O DHT11 não opera abaixo de 0 °C e tem erro de ±2 °C — maior que a tolerância de +2 a +8 °C. Medir o ambiente de exposição, onde o sensor está dentro da especificação, é decisão técnica deliberada.
+- **O sinalizador de retenção é demonstrado pelo próprio relé.** O módulo relé está montado e é acionado por MQTT, mas a lâmpada/torre de 12 V que ele comandaria em uso real não foi adquirida. Na demonstração da N1 o acionamento é comprovado pelo **contato fechando** — LED indicador do módulo e clique audível. O contato é a seco, então trocar a demonstração pelo farol real não altera o firmware nem o circuito de controle: é só ligar a carga nos bornes.
+- **Confirmações publicadas em QoS 0.** O contrato da seção 7 prevê QoS 1 para `confirmacao`, mas a biblioteca `PubSubClient` só publica em QoS 0. A limitação está registrada no código e aceita nesta etapa: a confirmação é reenviável pelo operador, que reemite o comando se não vir o ACK.
 
 ## 13. Dúvidas para o professor
 
