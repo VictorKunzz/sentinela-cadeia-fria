@@ -15,7 +15,7 @@ Protótipo de **uma caixa** em bancada, defendido na N1 com o checklist de enqua
 
 ## Para onde vai — N3 (defesa em 01/12/2026)
 
-De protótipo para **produto**: duas caixas (`CF-01` e `CF-02`) enviando para um **backend FastAPI** que valida, guarda em **PostgreSQL** e expõe a API para uma **interface web** com login e perfis — o técnico visualiza, a coordenação comanda. A decisão de reter um lote deixa de depender de alguém olhando: **ao detectar uma quebra, o backend aciona o sinalizador de retenção da caixa e avisa a coordenação pelo Telegram**. Tudo sobe com Docker Compose, com contrato MQTT versionado, OTA, testes e CI.
+De protótipo para **produto**: a caixa `CF-01` envia suas medições para um **backend FastAPI** que valida, guarda em **PostgreSQL** e expõe a API para uma **interface web** com login e perfis — o técnico visualiza, a coordenação comanda. Um segundo dispositivo, a **estação de ventilação `VENT-01`**, só atua: quando a bancada passa de 30 °C, **o backend liga o exaustor sozinho**. E a decisão de reter um lote deixa de depender de alguém olhando: **ao detectar uma quebra, o backend aciona o sinalizador de retenção e avisa a coordenação pelo Telegram**. Tudo sobe com Docker Compose, com contrato MQTT versionado, OTA, testes e CI.
 
 📄 Proposta completa, conferência dos requisitos R1–R18 e arquitetura-alvo: [`docs/n3/CP12.md`](docs/n3/CP12.md)
 
