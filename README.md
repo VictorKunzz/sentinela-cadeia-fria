@@ -1,10 +1,25 @@
 # Sentinela de Cadeia Fria
 
-> **Internet das Coisas - N1** · Prof. Edson Vaz Lopes
-> Família temática atribuída: **Temperatura e Cadeia Fria**
-> Documento de **aprofundamento (pós Aula 04)** — evolui a entrega da Aula 02 para decisões reais: placa com conectividade, telemetria e comando remoto por MQTT.
+> **Internet das Coisas — N3** · Prof. Edson Vaz Lopes
+> Família temática: **Temperatura e Cadeia Fria**
 
-Um monitor de campo que mede **quanto tempo e sob que calor** um produto refrigerado ficou exposto durante o manuseio - o trecho da cadeia fria em que hoje ninguém mede nada - e agora **transmite isso em tempo real** para a coordenação, que pode **agir à distância**.
+Um monitor de campo que mede **quanto tempo e sob que calor** um produto refrigerado ficou exposto durante o manuseio — o trecho da cadeia fria em que hoje ninguém mede nada — e **transmite isso em tempo real** para a coordenação, que pode **agir à distância**.
+
+**Problema:** a cadeia fria é vigiada nas pontas e cega no meio. Entre a geladeira da unidade e o caminhão refrigerado, a caixa térmica fica aberta na calçada, na bancada, ao sol — e ninguém registra. Quando um lote é descartado por suspeita, não há como saber se falhou o equipamento ou o manuseio.
+
+**Usuário:** o técnico de enfermagem em campanha de vacinação extramuros, que abre a tampa dezenas de vezes por turno; e a coordenação da unidade, que acompanha e decide à distância.
+
+## Estado atual — herdado da N1
+
+Protótipo de **uma caixa** em bancada, defendido na N1 com o checklist de enquadramento IoT **7/7**: ESP32 com DHT11 e chave de tampa, firmware não-bloqueante com máquina de estados e orçamento térmico, e camada MQTT completa — telemetria, eventos, presença com *Last Will*, comandos remotos com confirmação. Não há backend, banco nem interface: o papel de painel foi exercido por um cliente MQTT operado manualmente.
+
+## Para onde vai — N3 (defesa em 01/12/2026)
+
+De protótipo para **produto**: duas caixas (`CF-01` e `CF-02`) enviando para um **backend FastAPI** que valida, guarda em **PostgreSQL** e expõe a API para uma **interface web** com login e perfis — o técnico visualiza, a coordenação comanda. A decisão de reter um lote deixa de depender de alguém olhando: **ao detectar uma quebra, o backend aciona o sinalizador de retenção da caixa e avisa a coordenação pelo Telegram**. Tudo sobe com Docker Compose, com contrato MQTT versionado, OTA, testes e CI.
+
+📄 Proposta completa, conferência dos requisitos R1–R18 e arquitetura-alvo: [`docs/n3/CP12.md`](docs/n3/CP12.md)
+
+> O conteúdo a partir da seção 1 abaixo documenta o projeto como foi defendido na **N1**.
 
 ---
 
