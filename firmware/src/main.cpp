@@ -53,12 +53,15 @@ constexpr uint32_t MQTT_ESPERA_MIN_MS = 1000;
 constexpr uint32_t MQTT_ESPERA_MAX_MS = 30000;
 
 // O broker declara o cliente morto apos ~1,5x o keep-alive, entao este valor
-// define em quanto tempo a presenca "offline" chega ao painel (~22 s aqui).
-// Medicao no HiveMQ via simulador: com 6 s o cliente caia a cada ~10 s, pois o
-// PINGRESP nao voltava a tempo pela rede simulada. Os padroes da biblioteca
-// sustentam a sessao. Com Mosquitto na LAN, onde a latencia e minima, da para
-// baixar de novo e cumprir a meta de 10 s do contrato.
-constexpr uint16_t MQTT_KEEPALIVE_S = 15;
+// define em quanto tempo a presenca "offline" chega ao painel (~90 s aqui).
+// Historico das medicoes: 6 s derrubava a sessao a cada ~10 s; 15 s sustentou
+// no simulador, mas em hardware real, saindo por hotspot de celular ate um
+// broker publico na internet, voltou a cair com rc=-4 (PINGRESP fora do prazo).
+// 60 s estabiliza esse caminho, ao custo de atrasar a deteccao de ausencia.
+// E uma troca consciente e reversivel: com Mosquitto na LAN, onde o ida e volta
+// e de poucos milissegundos, este valor volta para 15 s ou menos e a meta de
+// 10 s do contrato passa a ser cumprida.
+constexpr uint16_t MQTT_KEEPALIVE_S = 60;
 // Teto do bloqueio de mqtt.connect() quando o broker nao responde.
 constexpr uint16_t MQTT_TIMEOUT_S   = 15;
 
