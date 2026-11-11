@@ -19,3 +19,6 @@ desktop.ini
 # OneDrive / arquivos temporários
 *.tmp
 ~$*
+
+# Cola de bancada, uso interno da equipe — não faz parte da entrega
+/ROTEIRO-LOCAL.md
