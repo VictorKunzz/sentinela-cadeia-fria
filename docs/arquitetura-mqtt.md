@@ -11,7 +11,7 @@ Camada de rede do projeto: tópicos, formatos de mensagem, confirmação de coma
 
 ## Mapa de tópicos
 
-Prefixo base: **`sentinela/cadeia-fria`**. Um único dispositivo na N1; o prefixo já deixa espaço para múltiplas caixas depois (`sentinela/cadeia-fria/CF-02/...`).
+Prefixo base: **`sentinela/cadeia-fria`**. Um único dispositivo na N1; o prefixo já deixa espaço para múltiplos dispositivos depois — na N3, a caixa `CF-01` e a estação de ventilação `VENT-01` (`sentinela/cadeia-fria/{deviceId}/...`, ver [`n3/CP12.md`](n3/CP12.md)).
 
 ```mermaid
 flowchart LR
@@ -140,7 +140,7 @@ A rede vai cair — é premissa do projeto (RISCO-02), não exceção. Três mec
 
 1. **Wi-Fi não bloqueante.** A cada volta do laço, `manterWifi()` verifica `WiFi.status()`. Se caiu, dispara um novo `WiFi.begin(WIFI_SSID, WIFI_PASSWORD)` a cada `WIFI_RETENTA_MS` (5 s) — sem `while` nem `delay`, de modo que a máquina de estados, o semáforo e o buzzer continuam operando durante a queda. As transições (`conectado` / `conexão caiu` / `tentando conectar`) são registradas no serial, o que serve de evidência do requisito. Meta: reconectar em < 15 s após o AP voltar.
 2. **Reconexão MQTT com backoff.** Se `mqtt.connected()` for falso, tenta reconectar em intervalos crescentes (1 s, 2 s, 4 s… até um teto), reassinando todos os `comando/*` a cada reconexão.
-3. **Last Will + presença.** Ao conectar, publica `status=online` (retained). O *Last Will* registrado no broker publica `status=offline` (retained) automaticamente se o ESP32 desaparecer sem se despedir. Assim o painel distingue **"caixa em silêncio porque está tudo verde"** de **"caixa sumiu da rede"**. O broker declara a ausência após ~1,5× o *keep-alive*: com os 15 s usados hoje, o `offline` aparece em ~22 s. Medição no simulador mostrou que valores menores derrubavam a sessão por `PINGRESP` atrasado; em rede local, onde a latência é mínima, 6 s trazem a detecção para ~9 s.
+3. **Last Will + presença.** Ao conectar, publica `status=online` (retained). O *Last Will* registrado no broker publica `status=offline` (retained) automaticamente se o ESP32 desaparecer sem se despedir. Assim o painel distingue **"caixa em silêncio porque está tudo verde"** de **"caixa sumiu da rede"**. O broker declara a ausência após ~1,5× o *keep-alive*: hoje o firmware usa 60 s, então o `offline` aparece em ~90 s. O histórico: 6 s derrubava a sessão no simulador por `PINGRESP` atrasado; 15 s (~22 s de detecção) sustentou no simulador, mas em hardware real, saindo por hotspot de celular até um broker público, voltou a cair com `rc=-4`. 60 s estabiliza esse caminho ao custo de atrasar a detecção. Com o Mosquitto na LAN da N3, o valor volta para 15 s ou menos.
 
 > Enquanto sem rede, a máquina de estados, o semáforo e o buzzer continuam operando. A telemetria perdida nesse intervalo **não** é bufferizada na N1 — o store-and-forward é evolução da N2 (RISCO-02).
 
