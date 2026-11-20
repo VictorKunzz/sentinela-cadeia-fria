@@ -18,7 +18,7 @@ O **[PLANO-N3.md](PLANO-N3.md)** diz *o que* fazer; este arquivo diz *onde cada 
 
 - **Status:** não iniciada.
 - **Agora:** —
-- **Próximo passo:** 1.1 `CONTRATOS.md` v1.
+- **Próximo passo:** 1.1 `CONTRATOS.md` v1, transcrevendo o contrato já congelado na seção 6 do CP12 v1.0 (PDF em `docs/n3/`). Firmwares seguem o fluxograma da seção 5.3 (MANUAL 10 min; SEGURO após 3 leituras inválidas; VENT-01 desliga após 15 min ligada sem MQTT).
 - **Bloqueios:** —
 - **Última atualização:** 20/11
 
@@ -31,7 +31,7 @@ O **[PLANO-N3.md](PLANO-N3.md)** diz *o que* fazer; este arquivo diz *onde cada 
 - **Não tem:** cola quente (fica para o acabamento) e furadeira. O botão de reset **não** vai montado em caixa.
 - **Agora:** —
 - **Próximo passo:** montar a VENT-01 na protoboard seguindo [PINAGEM.md](PINAGEM.md), ajustar o LM2596 para 5,0 V e confirmar o nível de acionamento do relé de 1 canal.
-- **Bloqueios:** caixa térmica da CF-01 ainda não providenciada (não foi comprada).
+- **Bloqueios:** caixa térmica da CF-01 ainda não providenciada (não foi comprada); BC337 + 1 kΩ e 1N4007 do esquema do CP12 a conseguir com o tio.
 - **Última atualização:** 20/11
 
 ---
@@ -52,4 +52,6 @@ Formato: `DD/MM · frente · o que mudou` (uma linha por evento; só acrescentar
 - 18/11 · hardware · compra feita no Mercado Livre (13 itens, R$ 307,93): lista em BOM.md. VENT-01 com fonte única de 12 V + LM2596; microchave KW12 como sensor de tampa; botão PBS-11B como reset.
 - 20/11 · hardware · peças e ferramentas em mãos (empréstimo do tio). PINAGEM.md criada como contrato entre firmware e montagem.
 - 20/11 · geral · documentação alinhada à compra: README seção 6 virou a lista definitiva de peças por dispositivo; prototipo.md atualizado; PLANO ganhou a tabela "Termos do CP12 × peça real". Hardware fechado: farol/torre 12 V, MOSFET, chave tátil como tampa e carregador USB na VENT-01 estão superados.
+- 20/11 · geral · CP12 v1.0 (seções 1–9) conferido contra a compra. PINAGEM, BOM, PLANO e README alinhados ao esquema do PDF: buzzer via BC337 + 1 kΩ, 1N4007 na ventoinha, sinalizador com 150 Ω, LED RGB da VENT-01 marcado como opcional. Faltam BC337, 1N4007 e reservas (ESP32/DHT11) prometidas no BOM do CP12.
+- 20/11 · geral · regra fixada: onde o CP12 v1.0 conflita com a compra ou o plano, valem compra e plano (diferença declarada); onde detalha o que faltava, o PDF completa o plano.
 - 20/11 · geral · trabalho dividido em duas frentes (software e hardware), cada uma num chat próprio; este quadro criado para manter os dois em sincronia.

@@ -48,12 +48,23 @@ Montagem de produto e compactação:
 - **CF-01:** power bank + cabo micro-USB. Testar se o power bank não desliga sozinho com o consumo baixo do ESP32 (~100 mA).
 - **Ferramentas (emprestadas, em mãos):** ferro de solda com ponta fina e esponja, estanho, multímetro Minipa ET-2042C, alicates, desencapador, chave de fenda, cabinho AWG 22–24, sugador, terceira mão com lupa, isqueiro, fita isolante. Sem cola quente e sem furadeira.
 
+## Ainda falta (prometido no esquema do CP12 v1.0, não comprado)
+
+| Item | Para quê | Onde conseguir |
+|---|---|---|
+| Transistor BC337 (NPN) + resistor 1 kΩ | aciona o buzzer da CF-01, para ele não puxar corrente direto do GPIO 27 | tio / loja de eletrônica; qualquer NPN equivalente (BC547, 2N2222) serve |
+| Diodo 1N4007 | roda livre nos terminais da ventoinha da VENT-01 | tio / loja de eletrônica; 1N4001–1N4007 servem |
+| Resistor 150 Ω | limita a corrente do LED sinalizador | conferir no kit; 220 Ω serve se não houver (LED um pouco menos brilhante) |
+
+São componentes de centavos, mas estão no esquema elétrico entregue. Sem eles a montagem diverge do CP12.
+
 ## Ficou de fora de propósito
 
 | Item | Por quê |
 |---|---|
-| ESP32 reserva | custo; risco aceito |
-| DHT11 reserva | custo; risco aceito |
+| ESP32 reserva | custo; risco aceito. **O CP12 v1.0 listava** "2 ESP32 (VENT-01 + reserva)" e "DHT11 reserva": declarar como limitação no README da N3 |
+| DHT11 reserva | custo; risco aceito (idem) |
+| Parafusos M3 e termo-retrátil | só para a compactação (Fase 5); fita isolante cobre a bancada |
 
 ## Plano B
 

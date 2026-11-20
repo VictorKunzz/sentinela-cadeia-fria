@@ -97,9 +97,9 @@ O projeto **migrou da BlackBoard UNO R3 para o ESP32** na N1, porque o ESP32 tra
 | LED RGB | **cátodo comum**, 3 × 220 Ω (um por cor) | Semáforo de estado (verde / amarelo / vermelho / azul = falha) | ✅ montado |
 | Microchave fim de curso KW12 | NA, com haste | Sensor de tampa: a tampa aperta a haste ao fechar | ✅ comprada (substitui a chave tátil da N1) |
 | Botão de painel PBS-11B | sem trava | Reset local após QUEBRA | ✅ comprado (substitui a chave tátil da N1) |
-| Buzzer | ativo | Alarme sonoro (local **e** comandável) | ✅ montado |
+| Buzzer | ativo, acionado por transistor **BC337** + 1 kΩ | Alarme sonoro (local **e** comandável) | ✅ montado · ❌ BC337 a providenciar |
 | **Módulo relé 2 canais** | 5 V, active-low, **1 canal usado**, `VCC` no `VIN` | Aciona o sinalizador de retenção | ✅ montado (passar de 3V3 para `VIN`) |
-| **Sinalizador de retenção** | LED vermelho de 5 mm + 330 Ω, ligado ao 5 V pelo contato do relé | Marca fisicamente a caixa "sob suspeita, reter" | ✅ no kit |
+| **Sinalizador de retenção** | LED vermelho de 5 mm + 150 Ω, ligado ao 5 V pelo contato do relé | Marca fisicamente a caixa "sob suspeita, reter" | ✅ no kit |
 | Alimentação | power bank + cabo micro-USB | Energia em campo | ⚠️ separar da equipe |
 | Caixa térmica pequena | isopor ou similar | Corpo do produto | ❌ **a providenciar pelo grupo** |
 
@@ -113,7 +113,8 @@ O projeto **migrou da BlackBoard UNO R3 para o ESP32** na N1, porque o ESP32 tra
 | Fonte 12 V 1 A | plugue P4 | Alimenta a estação inteira (uma tomada) | ✅ comprada |
 | Conector P4 fêmea com borne | — | Recebe o plugue da fonte sem cortar o cabo | ✅ comprado |
 | Regulador step-down LM2596 | ajustado em **5,0 V** | 12 V → 5 V no `VIN` do ESP32 | ✅ comprado |
-| LED RGB | cátodo comum, 3 × 220 Ω | Estado da estação | ✅ comprado |
+| Diodo 1N4007 | em antiparalelo na ventoinha | Roda livre da carga indutiva | ❌ a providenciar |
+| LED RGB | cátodo comum, 3 × 220 Ω | Estado da estação (opcional, fora do esquema do CP12) | ✅ comprado |
 
 ### Montagem (as duas)
 

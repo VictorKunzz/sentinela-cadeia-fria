@@ -37,14 +37,15 @@ Onde cada frente está agora, recados entre frentes e diário: [`ESTADO.md`](EST
 | Firmware | PlatformIO, o mesmo projeto da N1; a VENT-01 em um segundo `env` ou pasta própria |
 | Hardware | **Fechado pela compra de 18/11:** só se usa o que está no README, seção 6, e na [`BOM.md`](BOM.md). Pinos e ligações em [`PINAGEM.md`](PINAGEM.md) |
 
-**Termos do CP12 × peça real.** O CP12 foi escrito antes da compra e não pode ser alterado, porque é idêntico ao PDF entregue. Ao falar dele, use esta correspondência:
+**Termos do CP12 × peça real.** O CP12 v1.0 (`docs/n3/CP12_EQUIPE-6_PROJETO_v1.0.pdf`, seções 1–9) é o compromisso entregue e não se altera. Ele foi escrito em 27/10, antes da compra. Regra: **onde o PDF conflita com a compra ou com este plano, valem a compra e o plano**, e a diferença é declarada como limitação. **Onde o PDF detalha algo que o plano não tinha** (esquema 5.1, modos e tempos do fluxograma 5.3, contrato congelado da seção 6), o PDF completa o plano. Ao falar dele, use esta correspondência:
 
 | No CP12 | Peça real |
 |---|---|
 | "exaustor 12 V" | ventoinha 80 mm 12 V 0,15 A (no MQTT continua `exaustor`) |
 | "módulo de potência" | módulo relé 1 canal SRD-05VDC |
 | "fonte própria" | fonte 12 V 1 A; o ESP32 da VENT-01 recebe 5 V pelo LM2596 |
-| "sinalizador de retenção" | LED vermelho 5 mm pelo contato do relé de 2 canais |
+| "sinalizador de retenção" / "LED vermelho 10 mm + 150 Ω" | LED vermelho 5 mm do kit + 150 Ω, pelo contato do relé de 2 canais |
+| "2 ESP32 (VENT-01 + reserva)", "DHT11 reserva" | só o ESP32 da VENT-01 foi comprado; sem reservas (limitação a declarar) |
 | "chave de tampa" | microchave fim de curso KW12 |
 | "botão de reset" | botão de painel PBS-11B |
 | "montada em caixa térmica" | caixa térmica a providenciar pelo grupo (não comprada) |
@@ -54,6 +55,7 @@ Onde cada frente está agora, recados entre frentes e diário: [`ESTADO.md`](EST
 ## Fase 0 — Compras (hoje) · lista completa em [`BOM.md`](BOM.md)
 
 - [x] Pedido feito no Mercado Livre (13 itens, R$ 307,93): ESP32 DevKit V1 30 pinos, ventoinha 12 V, fonte 12 V, relé 1 canal, 120 jumpers (M-M, M-F, F-F), regulador LM2596, conectores P4 fêmea, microchaves KW12, botões de painel, LEDs RGB cátodo comum, placas perfuradas, barras de pinos macho e fêmea, bornes KF301
+- [ ] Conseguir **BC337 + resistor 1 kΩ** (buzzer) e **diodo 1N4007** (ventoinha), que estão no esquema do CP12 v1.0 e não foram comprados. Pedir ao tio
 - [ ] Separar: power bank + cabo (CF-01)
 - [ ] Providenciar a **caixa térmica** da CF-01 (isopor de supermercado serve). Não foi comprada e o CP12 promete a CF-01 montada nela
 - [x] Ferramentas de solda e montagem em mãos (lista em [ESTADO.md](ESTADO.md), frente Hardware)
@@ -67,12 +69,12 @@ Onde cada frente está agora, recados entre frentes e diário: [`ESTADO.md`](EST
 
 ### 1.1 Contrato MQTT v1 · R3 — *bloqueia todo o resto; fazer primeiro*
 
-- [ ] `CONTRATOS.md` na raiz do repo, com `version: 1`. Deve trazer:
+- [ ] `CONTRATOS.md` na raiz do repo, com `version: 1`. O contrato já foi **congelado como v1 na seção 6 do CP12 v1.0**: transcrever e detalhar, sem mudar tópicos, comandos nem payloads. Deve trazer:
   - árvore `sentinela/cadeia-fria/{deviceId}/{status|telemetria|evento|estado|comando/<acao>|confirmacao}`
   - um payload de exemplo por tópico, com `version`, `deviceId`, `ts` (ISO-8601 ou epoch, com flag `horaSincronizada`) e unidades
   - lista de comandos com faixas: CF-01 `rele`, `buzzer`, `reset`, `config`; VENT-01 `exaustor`
   - confirmação com `commandId` + `resultado` (`aceito` | `rejeitado` | `executado`) + `motivo`
-  - catálogo de códigos de erro
+  - catálogo de códigos de erro: `QUEBRA_ATIVA`, `SEM_QUEBRA`, `DUPLICADO`, `ACAO_INVALIDA`, `FORA_DA_FAIXA`
   - QoS e retain justificados por tópico, incluindo a limitação do PubSubClient (só publica em QoS 0)
 - [ ] `docs/arquitetura-mqtt.md` passa a apontar para o `CONTRATOS.md` (sem duplicar)
 
@@ -87,6 +89,8 @@ Onde cada frente está agora, recados entre frentes e diário: [`ESTADO.md`](EST
 - [ ] Validação de faixa plausível do DHT11 (0–50 °C, 20–90 % UR)
 - [ ] Estado seguro de sensor ausente: orçamento congelado, LED azul, evento `sensor_falha` publicado
 - [ ] Orçamento inicial em NVS (`Preferences`), alterável pelo comando `config`
+- [ ] Modos do fluxograma do CP12 (5.3): AUTOMÁTICO (FECHADO/EXPOSTO/QUEBRA); **MANUAL** ao aceitar comando, volta ao automático em **10 min** ou por comando; **SEGURO** após **3 leituras inválidas**, sai com **2 válidas**
+- [ ] Intertravamento: "desligar sinalizador" rejeitado com QUEBRA ativa (`QUEBRA_ATIVA`); "reset" rejeitado sem QUEBRA (`SEM_QUEBRA`)
 - [ ] Backoff MQTT até 30 s (já existe, só conferir); keep-alive de volta a 15 s no Mosquitto local
 - [ ] ArduinoOTA com senha (vinda do `secrets.h`)
 
@@ -97,7 +101,7 @@ Onde cada frente está agora, recados entre frentes e diário: [`ESTADO.md`](EST
 - [ ] Projeto/`env` próprio, `deviceId` `VENT-01`; assina só `VENT-01/comando/exaustor`
 - [ ] Exaustor **desligado no boot**; relé em repouso antes de configurar o pino (como no fix active-low da CF-01)
 - [ ] Ciclo de confirmação igual ao da CF-01 (`commandId`, duplicado, `executado`)
-- [ ] Regra local: desliga sozinho se ficar ligado mais de N min sem contato com o backend (valor no contrato)
+- [ ] Modos do fluxograma do CP12 (5.3): AUTOMÁTICO segue o backend; MANUAL por comando da coordenação, volta em **10 min**; **SEGURO**: exaustor desliga sozinho se ficar **ligado 15 min sem MQTT**, e sai do SEGURO quando a conexão com o broker volta
 - [ ] Publica `status` (LWT) e `estado` (`exaustor: ligado/desligado`)
 
 **Pronto quando:** no Wokwi, um comando publicado à mão liga e desliga o "relé" com as duas confirmações.
@@ -174,9 +178,9 @@ Onde cada frente está agora, recados entre frentes e diário: [`ESTADO.md`](EST
 
 - [ ] **Teste do power bank:** CF-01 ligada 30 min sem o power bank desligar sozinho
 - [ ] CF-01: relé alimentado pelo `VIN` (5 V) com GND comum; o brownout some ao acionar
-- [ ] CF-01: LED vermelho de 5 mm do kit (com resistor de 220–330 Ω) como sinalizador, ligado ao 5 V pela saída do relé; microchave KW12 como sensor de tampa; botão de painel como reset
+- [ ] CF-01: LED vermelho de 5 mm do kit (com resistor de 150 Ω) como sinalizador, ligado ao 5 V pela saída do relé; microchave KW12 como sensor de tampa; botão de painel como reset; buzzer pelo BC337 + 1 kΩ (esquema do CP12)
 - [ ] VENT-01: uma fonte só. Fonte 12 V → conector P4 fêmea com borne → divide em dois ramos: (a) LM2596 **ajustado para 5,0 V no multímetro antes de ligar o ESP32** → `VIN`/`GND` do ESP32; (b) +12 V pelo COM/NA do relé até a ventoinha. O ESP32 nunca alimenta a ventoinha
-- [ ] VENT-01: relé ligado com jumpers F-F (`VIN` 5 V, `GND`, `IN`); GND comum entre o LM2596, o ESP32 e o relé
+- [ ] VENT-01: relé ligado com jumpers F-F (`VIN` 5 V, `GND`, `IN`); GND comum entre o LM2596, o ESP32 e o relé; diodo 1N4007 em antiparalelo na ventoinha (faixa no +)
 - [ ] Mapa de pinos dos dois dispositivos em [`PINAGEM.md`](PINAGEM.md) (v1 escrita; confirmar na bancada) e esquema elétrico (Fritzing/KiCad/Wokwi) versionado como imagem
 - [ ] Montagem mínima prometida no CP12: CF-01 **fixada dentro de uma caixa térmica real**, sem fios soltos (protoboard presa e fios organizados já cumprem; a placa soldada é a Fase 5)
 
