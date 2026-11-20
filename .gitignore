@@ -20,6 +20,13 @@ desktop.ini
 *.tmp
 ~$*
 
+# Segredos e artefatos do backend
+.env
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+
 # Cola de bancada, uso interno da equipe — não faz parte da entrega
 /ROTEIRO-LOCAL.md
 

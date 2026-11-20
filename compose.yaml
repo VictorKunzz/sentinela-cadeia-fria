@@ -1,0 +1,68 @@
+# Sentinela de Cadeia Fria - N3. Um unico "docker compose up" sobe tudo.
+# Variaveis sensiveis vem do .env (copie de .env.example).
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+    environment:
+      MQTT_PASS_BACKEND: ${MQTT_PASS_BACKEND:?defina no .env}
+      MQTT_PASS_CF01: ${MQTT_PASS_CF01:?defina no .env}
+      MQTT_PASS_VENT01: ${MQTT_PASS_VENT01:?defina no .env}
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./mosquitto/acl:/mosquitto/config/acl:ro
+      - mosquitto_data:/mosquitto/data
+    # O arquivo de senhas e gerado a cada partida a partir do .env: nada de
+    # senha versionada. $$ evita que o compose interprete as variaveis.
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        rm -f /tmp/passwd &&
+        mosquitto_passwd -b -c /tmp/passwd backend "$$MQTT_PASS_BACKEND" &&
+        mosquitto_passwd -b /tmp/passwd CF-01 "$$MQTT_PASS_CF01" &&
+        mosquitto_passwd -b /tmp/passwd VENT-01 "$$MQTT_PASS_VENT01" &&
+        chown mosquitto:mosquitto /tmp/passwd &&
+        exec mosquitto -c /mosquitto/config/mosquitto.conf
+    healthcheck:
+      test: ["CMD-SHELL", "mosquitto_sub -h localhost -u backend -P \"$$MQTT_PASS_BACKEND\" -t '$$SYS/broker/uptime' -C 1 -W 3 >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-sentinela}
+      POSTGRES_USER: ${POSTGRES_USER:-sentinela}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina no .env}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-sentinela}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-sentinela}
+      MQTT_HOST: ${MQTT_HOST:-mosquitto}
+      MQTT_PORT: ${MQTT_PORT:-1883}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      mosquitto:
+        condition: service_healthy
+
+volumes:
+  mosquitto_data:
+  db_data:

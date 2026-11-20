@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Sentinela · Cadeia Fria</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<!-- Ícone do Sentinela (escudo + floco de gelo), reutilizado em login e cabeçalho -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="logo" viewBox="0 0 24 24">
+    <path d="M12 2 20 5v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z" fill="currentColor" opacity=".14"/>
+    <path d="M12 2 20 5v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+    <g stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none">
+      <path d="M12 6.5v10M7.7 9l8.6 5M16.3 9l-8.6 5"/>
+      <path d="M10.6 7.4 12 8.6l1.4-1.2M10.6 15.6 12 14.4l1.4 1.2"/>
+    </g>
+  </symbol>
+</svg>
+
+<a class="pular" href="#principal">Pular para o conteúdo</a>
+
+<!-- ============ LOGIN ============ -->
+<main id="tela-login" class="login" hidden>
+  <form id="form-login" class="login-card" autocomplete="on" novalidate>
+    <div class="marca marca-grande">
+      <svg class="logo" aria-hidden="true"><use href="#logo"/></svg>
+      <div>
+        <h1>Sentinela</h1>
+        <p class="sub">Monitor de cadeia fria</p>
+      </div>
+    </div>
+    <p id="login-aviso" class="msg" role="alert" hidden></p>
+    <label for="login-usuario">Usuário</label>
+    <input id="login-usuario" name="username" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+    <label for="login-senha">Senha</label>
+    <input id="login-senha" name="password" type="password" autocomplete="current-password" required>
+    <button id="login-enviar" class="btn btn-primario" type="submit">Entrar</button>
+    <p class="nota">Perfis: <strong>técnico</strong> acompanha; <strong>coordenação</strong> acompanha e comanda.</p>
+  </form>
+</main>
+
+<!-- ============ APLICAÇÃO ============ -->
+<div id="tela-app" hidden>
+  <header class="topo">
+    <div class="marca">
+      <svg class="logo" aria-hidden="true"><use href="#logo"/></svg>
+      <div>
+        <strong class="nome">Sentinela</strong>
+        <span class="sub">Cadeia fria</span>
+      </div>
+    </div>
+    <div class="topo-dir">
+      <span id="conexao" class="conexao" role="status" title="Conexão com o servidor">
+        <span class="ponto" aria-hidden="true"></span><span id="conexao-txt">conectado</span>
+      </span>
+      <span id="usuario-chip" class="chip"></span>
+      <button id="btn-sair" class="btn btn-fantasma" type="button">Sair</button>
+    </div>
+  </header>
+
+  <nav class="abas" aria-label="Seções">
+    <a href="#painel" data-aba="painel">Painel</a>
+    <a href="#historico" data-aba="historico">Histórico</a>
+    <a href="#indicadores" data-aba="indicadores">Indicadores</a>
+    <a href="#regras" data-aba="regras">Regras</a>
+  </nav>
+
+  <main id="principal" class="conteudo" tabindex="-1">
+
+    <!-- ALERTAS: sempre visíveis -->
+    <section id="alertas" class="alertas" aria-label="Alertas ativos" aria-live="polite"></section>
+
+    <!-- PAINEL -->
+    <section id="aba-painel" data-secao="painel">
+      <h2 class="secao-titulo">Dispositivos</h2>
+      <div id="cards" class="cards"></div>
+
+      <h2 class="secao-titulo">Comandos recentes</h2>
+      <p id="aviso" class="msg" role="status" aria-live="polite" hidden></p>
+      <ul id="lista-comandos" class="lista-comandos"></ul>
+    </section>
+
+    <!-- HISTÓRICO -->
+    <section id="aba-historico" data-secao="historico" hidden>
+      <h2 class="secao-titulo">Histórico</h2>
+      <div class="filtros">
+        <div>
+          <label for="h-dispositivo">Dispositivo</label>
+          <select id="h-dispositivo"></select>
+        </div>
+        <div>
+          <label for="h-grandeza">Grandeza</label>
+          <select id="h-grandeza">
+            <option value="temperatura">Temperatura</option>
+            <option value="umidade">Umidade</option>
+            <option value="orcamento">Orçamento térmico</option>
+            <option value="rssi">Sinal Wi-Fi (RSSI)</option>
+          </select>
+        </div>
+        <div>
+          <label for="h-periodo">Período</label>
+          <select id="h-periodo">
+            <option value="900">Últimos 15 min</option>
+            <option value="3600" selected>Última hora</option>
+            <option value="21600">Últimas 6 horas</option>
+            <option value="86400">Últimas 24 horas</option>
+          </select>
+        </div>
+        <div>
+          <label for="h-janela">Média móvel</label>
+          <select id="h-janela">
+            <option value="3">3 pontos</option>
+            <option value="5" selected>5 pontos</option>
+            <option value="10">10 pontos</option>
+            <option value="20">20 pontos</option>
+          </select>
+        </div>
+      </div>
+      <div class="grafico-caixa">
+        <canvas id="grafico" role="img" aria-label="Gráfico do histórico com média móvel"></canvas>
+        <p id="grafico-vazio" class="vazio" hidden></p>
+      </div>
+      <p id="grafico-resumo" class="nota"></p>
+
+      <h3 class="secao-sub">Eventos recentes</h3>
+      <div class="tabela-rolagem">
+        <table class="tabela">
+          <thead><tr><th scope="col">Quando</th><th scope="col">Evento</th><th scope="col">Detalhes</th></tr></thead>
+          <tbody id="eventos"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- INDICADORES -->
+    <section id="aba-indicadores" data-secao="indicadores" hidden>
+      <h2 class="secao-titulo">Indicadores da caixa CF-01</h2>
+      <div class="filtros">
+        <div>
+          <label for="i-periodo">Período</label>
+          <select id="i-periodo">
+            <option value="3600">Última hora</option>
+            <option value="28800">Últimas 8 horas</option>
+            <option value="86400" selected>Últimas 24 horas</option>
+            <option value="604800">Últimos 7 dias</option>
+          </select>
+        </div>
+      </div>
+      <div id="indicadores" class="indicadores"></div>
+      <p id="indicadores-nota" class="nota"></p>
+    </section>
+
+    <!-- REGRAS -->
+    <section id="aba-regras" data-secao="regras" hidden>
+      <h2 class="secao-titulo">Regra do exaustor (R8)</h2>
+      <form id="form-regras" class="form-regras" novalidate>
+        <p class="nota">Quando a temperatura da caixa ficar <strong>acima</strong> do limite de ligar durante todo o intervalo, a estação liga o exaustor. Ela desliga quando a temperatura cair <strong>abaixo</strong> do limite de desligar. A faixa entre os dois é a histerese.</p>
+        <label for="r-ligar">Ligar o exaustor acima de (°C)</label>
+        <input id="r-ligar" type="number" step="0.5" min="0" max="60" inputmode="decimal" required>
+        <label for="r-desligar">Desligar o exaustor abaixo de (°C)</label>
+        <input id="r-desligar" type="number" step="0.5" min="0" max="60" inputmode="decimal" required>
+        <label for="r-janela">Por quanto tempo acima do limite (segundos)</label>
+        <input id="r-janela" type="number" step="10" min="10" max="3600" inputmode="numeric" required>
+        <label class="check"><input id="r-ativa" type="checkbox"> Regra ativa</label>
+        <p id="regras-msg" class="msg" role="status" aria-live="polite" hidden></p>
+        <p id="regras-ro" class="nota" hidden>Perfil técnico: somente leitura. Só a coordenação altera a regra.</p>
+        <button id="r-salvar" class="btn btn-primario" type="submit">Salvar regra</button>
+        <p id="regras-atualizado" class="nota"></p>
+      </form>
+    </section>
+  </main>
+
+  <footer class="rodape">
+    Sentinela de Cadeia Fria · N3 · O DHT11 mede o ambiente de exposição, não o interior refrigerado.
+  </footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="/app.js"></script>
+</body>
+</html>
