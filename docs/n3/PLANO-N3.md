@@ -35,6 +35,7 @@ Onde cada frente está agora, recados entre frentes e diário: [`ESTADO.md`](EST
 | Notificação | Bot do Telegram chamado pelo backend |
 | Testes / CI | pytest + GitHub Actions |
 | Firmware | PlatformIO, o mesmo projeto da N1; a VENT-01 em um segundo `env` ou pasta própria |
+| Testes sem hardware | Simulador Python de dispositivo (CF-01 e VENT-01 pelo contrato) + Wokwi em broker público com prefixo exclusivo de teste (a nuvem do Wokwi não alcança o Mosquitto local). Ordem de isolamento de defeito: pytest → simulador → Wokwi → hardware real |
 | Hardware | **Fechado pela compra de 18/11:** só se usa o que está no README, seção 6, e na [`BOM.md`](BOM.md). Pinos e ligações em [`PINAGEM.md`](PINAGEM.md) |
 
 **Termos do CP12 × peça real.** O CP12 v1.0 (`docs/n3/CP12_EQUIPE-6_PROJETO_v1.0.pdf`, seções 1–9) é o compromisso entregue e não se altera. Ele foi escrito em 27/10, antes da compra. Regra: **onde o PDF conflita com a compra ou com este plano, valem a compra e o plano**, e a diferença é declarada como limitação. **Onde o PDF detalha algo que o plano não tinha** (esquema 5.1, modos e tempos do fluxograma 5.3, contrato congelado da seção 6), o PDF completa o plano. Ao falar dele, use esta correspondência:

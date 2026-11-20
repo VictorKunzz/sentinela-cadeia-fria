@@ -2,7 +2,7 @@
 
 Lista de materiais dos dois dispositivos da N3: a caixa `CF-01` e a estação de ventilação `VENT-01`.
 
-Critério: o kit da equipe (ESP32 Basic Starter Kit) cobre a base. A compra completa o que falta para a VENT-01, para a montagem de produto (sensor de tampa, botão e sinalizador de painel) e para a compactação em placa soldada da Fase 5 do [plano](PLANO-N3.md).
+Critério: o kit da equipe (ESP32 Basic Starter Kit) cobre a base. A compra completa o que falta para a VENT-01, para a montagem de produto (sensor de tampa, botão e sinalizador de painel) e para a compactação em placa soldada da fase de compactação (opcional, só se sobrar tempo).
 
 ## O que já temos (kit + N1)
 

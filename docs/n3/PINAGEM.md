@@ -1,6 +1,6 @@
 # Pinagem e ligações — N3
 
-Este arquivo é o **contrato entre o firmware e o hardware**. O código usa estes pinos e a montagem segue estas ligações. Se um pino mudar, mude aqui **e** no firmware no mesmo commit, e registre no [ESTADO.md](ESTADO.md).
+Este arquivo é o **contrato entre o firmware e o hardware**. O código usa estes pinos e a montagem segue estas ligações. Se um pino mudar, mude aqui **e** no firmware no mesmo commit.
 
 Placa dos dois dispositivos: ESP32 DevKit V1 de 30 pinos (`board = esp32dev`). Baseado no esquema elétrico da seção 5.1 do [CP12 v1.0](CP12_EQUIPE-6_PROJETO_v1.0.pdf), adaptado às peças compradas (onde diferem, vale a peça comprada).
 
