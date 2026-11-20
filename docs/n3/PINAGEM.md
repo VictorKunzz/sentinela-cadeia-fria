@@ -13,7 +13,7 @@ Pinos já usados em `firmware/src/main.cpp`:
 | DHT11 (dados) | 4 | `VCC` → 3V3, `DATA` → GPIO 4, `GND` → GND; pull-up de 10 kΩ entre `DATA` e 3V3 (se for o módulo de 3 pinos, o resistor já vem na plaquinha) |
 | Tampa (microchave KW12) | 18 | `COM` → GND, `NA` → GPIO 18. `INPUT_PULLUP`: tampa fechada aperta a haste → LOW = fechada; solta → HIGH = aberta |
 | Reset (botão PBS-11B) | 19 | um terminal → GPIO 19, outro → GND (`INPUT_PULLUP`, apertado = LOW) |
-| Buzzer (ativo) via transistor BC337 | 27 | GPIO 27 → resistor 1 kΩ → base do BC337; emissor → GND; coletor → `−` do buzzer; `+` do buzzer → VIN (5 V). Nada muda no firmware: HIGH = toca. **BC337 não foi comprado** (ver BOM) |
+| Buzzer (ativo) via transistor BC337 | 27 | GPIO 27 → resistor 1 kΩ → base do BC337; emissor → GND; coletor → `−` do buzzer; `+` do buzzer → VIN (5 V). Nada muda no firmware: HIGH = toca. **BC337 não foi comprado** (ver BOM). **Versão atual da bancada (sem BC337):** buzzer ativo ligado direto, `+` → GPIO 27, `−` → GND; funciona, mas puxa corrente do pino. Divergência do esquema do CP12, a declarar como limitação |
 | LED RGB — vermelho | 25 | via resistor de 220 Ω |
 | LED RGB — verde | 26 | via resistor de 220 Ω |
 | LED RGB — azul | 33 | via resistor de 220 Ω; terminal comum (o mais longo, cátodo) → GND |
@@ -28,7 +28,7 @@ Segue o esquema elétrico do CP12 v1.0 (seção 5.1). O firmware da VENT-01 aind
 
 | Função | GPIO | Ligação |
 |---|---|---|
-| Relé da ventoinha (módulo 1 canal SRD-05VDC) | 23 | `VCC` → VIN (5 V), `GND` → GND, `IN` → GPIO 23. **Nível de acionamento a confirmar na bancada** (alto ou baixo) e registrar aqui. Conferir também se o módulo é opto-isolado (o CP12 diz que sim); se não for, declarar como limitação |
+| Relé da ventoinha (módulo 1 canal SRD-05VDC) | 23 | `VCC` → VIN (5 V), `GND` → GND, `IN` → GPIO 23. **Medido na bancada (20/11): módulo active-low** (aciona com `IN` em GND). **Não solta com `HIGH` de 3,3 V** do ESP32 (VCC do módulo em 5 V): o relé fica acionado. Por isso a saída deve ser **open-drain simulada**: *ligar* = `pinMode(23, OUTPUT)` + `digitalWrite(23, LOW)`; *desligar* = `pinMode(23, INPUT)` (pino flutuando; o módulo puxa a entrada para 5 V e o relé solta). Nunca escrever `HIGH` nesse pino. Conferir também se o módulo é opto-isolado (o CP12 diz que sim); se não for, declarar como limitação |
 | LED RGB de estado — vermelho | 25 | via resistor de 220 Ω · **opcional**, não está no esquema do CP12 |
 | LED RGB de estado — verde | 26 | via resistor de 220 Ω · opcional |
 | LED RGB de estado — azul | 33 | via resistor de 220 Ω; comum → GND · opcional |
@@ -48,7 +48,7 @@ Fonte 12 V ──P4── conector P4 fêmea (borne: + e −)
                                           fio preto (−) da ventoinha ──► GND da fonte
 
 Diodo 1N4007 em antiparalelo nos terminais da ventoinha: faixa (cátodo) no +,
-outra ponta no GND. **1N4007 não foi comprado** (ver BOM).
+outra ponta no GND. **1N4007 não foi comprado** (ver BOM): na bancada atual a ventoinha roda **sem o diodo** (divergência do CP12, a declarar como limitação; instalar se a peça aparecer).
 ```
 
 - **Antes de ligar o ESP32:** com o LM2596 sozinho na fonte, girar o trimpot até o multímetro marcar **5,0 V** na saída.
