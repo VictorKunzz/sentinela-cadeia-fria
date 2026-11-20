@@ -22,15 +22,12 @@ constexpr uint8_t PINO_LED_R = 25;
 constexpr uint8_t PINO_LED_G = 26;
 constexpr uint8_t PINO_LED_B = 33;
 
-// Nivel de acionamento do rele de 1 canal (SRD-05VDC). PENDENTE de confirmacao na
-// bancada pela frente Hardware (ver ESTADO.md / PINAGEM.md): padrao active-low
-// (contato fecha com GPIO em LOW). Para trocar sem editar o codigo:
-//   build_flags = -DRELE_ATIVO_ALTO_FLAG=1
-#ifdef RELE_ATIVO_ALTO_FLAG
-constexpr bool RELE_ATIVO_ALTO = (RELE_ATIVO_ALTO_FLAG != 0);
-#else
-constexpr bool RELE_ATIVO_ALTO = false;
-#endif
+// Rele de 1 canal (SRD-05VDC), medido na bancada em 20/11 (ver PINAGEM.md):
+// active-low e NAO solta quando o GPIO escreve HIGH de 3,3 V (o modulo e
+// alimentado com 5 V). Por isso o pino e "open-drain simulado":
+//   ligar    = saida em LOW  (puxa IN para GND, rele aciona)
+//   desligar = entrada flutuante (o modulo puxa IN para 5 V, rele solta)
+// Nunca escrever HIGH neste pino.
 
 // LED RGB de estado (opcional, nao esta no esquema do CP12). Catodo comum.
 // Sem o LED montado nada acontece: os GPIOs ficam como saida sem carga.
@@ -53,7 +50,12 @@ void setCor(bool r, bool g, bool b) {
 
 void setExaustor(bool ligado) {
   exaustorLigado = ligado;
-  digitalWrite(PINO_RELE, (ligado == RELE_ATIVO_ALTO) ? HIGH : LOW);
+  if (ligado) {
+    digitalWrite(PINO_RELE, LOW);   // latch em LOW antes de virar saida: sem pulso
+    pinMode(PINO_RELE, OUTPUT);
+  } else {
+    pinMode(PINO_RELE, INPUT);      // flutuante: o modulo solta o rele
+  }
 }
 
 // Verde: ocioso e online · azul: exaustor ligado · amarelo: sem MQTT · vermelho: SEGURO.
@@ -132,10 +134,9 @@ void aoConectar() {
 
 // ---------------------------------------------------------------------------
 void setup() {
-  // Exaustor desligado no boot: o nivel de repouso vai para o latch do pino
-  // ANTES de ele virar saida, para o rele nao dar pulso na energizacao.
+  // Exaustor desligado no boot: o pino fica em INPUT (flutuante), que e o
+  // estado de repouso do rele (open-drain simulado, ver acima).
   setExaustor(false);
-  pinMode(PINO_RELE, OUTPUT);
 
   Serial.begin(115200);
   delay(500);

@@ -1,46 +1,52 @@
 // VENT-01 - programa de teste de bancada (NAO e o firmware definitivo).
-// Objetivo: validar a montagem do rele de 1 canal e descobrir o nivel de
-// acionamento (alto ou baixo) antes do firmware da VENT-01 existir.
+// Valida a montagem do rele de 1 canal usando a saida CORRETA para este modulo
+// (medido na bancada em 20/11, ver PINAGEM.md): o modulo e active-low e NAO
+// solta quando o GPIO escreve HIGH de 3,3 V. Por isso o pino e "open-drain
+// simulado":
+//   ligar    = pinMode(23, OUTPUT) + digitalWrite(23, LOW)   (IN -> GND, aciona)
+//   desligar = pinMode(23, INPUT)                            (flutuante, solta)
+// Nunca se escreve HIGH no pino.
 //
-// O que faz: alterna o GPIO 23 a cada 2 s e imprime no Serial qual nivel esta
-// em uso. Quem monta observa o LED/clique do modulo e anota em PINAGEM.md:
-//   - "contato fecha com GPIO 23 = LOW"  -> modulo active-low  (RELE_ATIVO_ALTO = false)
-//   - "contato fecha com GPIO 23 = HIGH" -> modulo active-high (RELE_ATIVO_ALTO = true)
-//
-// Sem Wi-Fi, sem MQTT: so o rele. Pode rodar com a ventoinha desligada do
-// borne (so ouvindo o clique) e depois com ela ligada.
+// O que faz: alterna ligado/desligado a cada 2 s e imprime no Serial. Esperado:
+// o LED do modulo (e o clique) acompanha a linha "LIGADO"; sem Wi-Fi, sem MQTT.
+// Pode rodar com a ventoinha desligada do borne (so ouvindo o clique).
 
 #include <Arduino.h>
 
-constexpr uint8_t  PINO_RELE   = 23;
-constexpr uint32_t PERIODO_MS  = 2000;
+constexpr uint8_t  PINO_RELE  = 23;
+constexpr uint32_t PERIODO_MS = 2000;
 
-// Estado de repouso presumido: HIGH (a maioria dos modulos opto-isolados e
-// active-low, entao HIGH = contato aberto). Escrito ANTES de virar saida.
-void setup() {
-  digitalWrite(PINO_RELE, HIGH);
+void releLigar() {
+  digitalWrite(PINO_RELE, LOW);   // latch em LOW antes de virar saida: sem pulso
   pinMode(PINO_RELE, OUTPUT);
+}
+
+void releDesligar() { pinMode(PINO_RELE, INPUT); }
+
+void setup() {
+  releDesligar();   // repouso: pino flutuante
 
   Serial.begin(115200);
   delay(500);
   Serial.println();
-  Serial.println("=== VENT-01 teste do rele (GPIO 23) ===");
-  Serial.println("A cada 2 s o pino troca de nivel. Observe o LED/clique do modulo.");
-  Serial.println("Anote em qual nivel o contato FECHA (clique + LED do modulo aceso).");
+  Serial.println("=== VENT-01 teste do rele (GPIO 23, open-drain simulado) ===");
+  Serial.println("A cada 2 s alterna LIGADO (OUTPUT+LOW) / DESLIGADO (INPUT).");
+  Serial.println("O LED do modulo e o clique devem acompanhar o LIGADO.");
 }
 
 void loop() {
   static uint32_t ultimo = 0;
-  static bool alto = true;   // comeca em HIGH (repouso presumido)
+  static bool ligado = false;
   static uint32_t ciclo = 0;
 
   const uint32_t agora = millis();
   if (agora - ultimo >= PERIODO_MS) {
     ultimo = agora;
-    alto = !alto;
-    digitalWrite(PINO_RELE, alto ? HIGH : LOW);
+    ligado = !ligado;
+    if (ligado) releLigar(); else releDesligar();
     ciclo++;
-    Serial.printf("[%lu] GPIO 23 = %s  <- o contato fechou agora? (clique/LED)\n",
-                  (unsigned long)ciclo, alto ? "HIGH" : "LOW");
+    Serial.printf("[%lu] rele %s (GPIO 23 = %s)\n", (unsigned long)ciclo,
+                  ligado ? "LIGADO" : "DESLIGADO",
+                  ligado ? "OUTPUT LOW" : "INPUT flutuante");
   }
 }
