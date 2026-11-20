@@ -44,6 +44,7 @@ Montagem de produto e compactação:
 
 ## O que a equipe fornece
 
+- **CF-01:** caixa térmica pequena (isopor serve), ainda **não providenciada**.
 - **CF-01:** power bank + cabo micro-USB. Testar se o power bank não desliga sozinho com o consumo baixo do ESP32 (~100 mA).
 - **Ferramentas (emprestadas, em mãos):** ferro de solda com ponta fina e esponja, estanho, multímetro Minipa ET-2042C, alicates, desencapador, chave de fenda, cabinho AWG 22–24, sugador, terceira mão com lupa, isqueiro, fita isolante. Sem cola quente e sem furadeira.
 

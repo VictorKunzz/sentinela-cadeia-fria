@@ -84,30 +84,45 @@ Construir um **protótipo conectado** que:
 
 O que **não** é objetivo da N1: medir a temperatura interna da caixa com precisão metrológica, ou persistir histórico no próprio dispositivo sem broker. As razões estão em [Limitações assumidas](#12-limitações-assumidas-nesta-etapa).
 
-## 6. Componentes previstos
+## 6. Componentes
 
-O projeto **migra da BlackBoard UNO R3 para o ESP32**, que traz Wi-Fi nativo - a mudança que viabiliza todo o requisito de conectividade da N1. O restante do arranjo (DHT11, semáforo, buzzer, chaves) é preservado.
+O projeto **migrou da BlackBoard UNO R3 para o ESP32** na N1, porque o ESP32 traz Wi-Fi nativo, que é o que viabiliza a conectividade. Para a N3, as peças que faltavam foram **compradas em 18/11/2026**. A tabela abaixo é a lista **definitiva** do que o projeto usa. Detalhes de compra estão em [`docs/n3/BOM.md`](docs/n3/BOM.md), e pinos e ligações em [`docs/n3/PINAGEM.md`](docs/n3/PINAGEM.md).
+
+### Caixa `CF-01` (mede)
 
 | Componente | Modelo / especificação | Função no projeto | Situação |
 |---|---|---|---|
-| **ESP32 DevKit V1** | Dual-core 240 MHz, Wi-Fi 2,4 GHz, ADC 12 bits | Controlador + conectividade | ✅ **adquirido** (fora do kit) |
-| Sensor DHT11 | digital, ±2 °C, 1 leitura/s | Temperatura e umidade do ambiente | ✅ no kit, montado |
-| LED RGB | **cátodo comum** (confirmado na bancada) | Semáforo de estado (verde / amarelo / vermelho) | ✅ no kit, montado |
-| Chave momentânea | tátil 6 mm | Sensor de tampa aberta | ✅ no kit, montado |
-| Chave momentânea (2ª) | tátil 6 mm | Botão de reset local após quebra | ✅ no kit, montado |
-| Buzzer | ativo ou passivo (a confirmar) | Alarme sonoro (local **e** comandável) | ✅ no kit, montado |
-| **Módulo relé 2 canais** | 5 V, opto-isolado, saída a seco — **1 canal usado** | Aciona o **sinalizador de retenção** (comando remoto) | ✅ **adquirido** |
-| **Sinalizador de retenção** | lâmpada/torre de sinalização 5–12 V | Marca fisicamente a caixa "sob suspeita, reter" | ❌ **a adquirir** — ver [Limitações](#12-limitações-assumidas-nesta-etapa) |
-| Fonte / alimentação | USB 5 V ou bateria + regulador 3,3 V | Alimentação do ESP32 e periféricos | ⚠️ definir (bancada USB na N1) |
-| Protoboard 400 pontos + jumpers | — | Montagem | ✅ no kit, montado |
-| Resistores | 3 × 220–330 Ω no LED RGB (um por cor) | Limitação de corrente do LED RGB | ✅ montados |
-| Termômetro digital de referência | resposta rápida | Validar o DHT11 (ver risco 01) | ❌ **não temos - providenciar** |
-| Caixa térmica pequena | — | Corpo do protótipo | ❌ a providenciar pelo grupo |
+| **ESP32 DevKit V1** | 30 pinos, Wi-Fi 2,4 GHz | Controlador + conectividade | ✅ montado |
+| Sensor DHT11 | digital, ±2 °C | Temperatura e umidade do **ambiente de exposição** | ✅ montado |
+| LED RGB | **cátodo comum**, 3 × 220 Ω (um por cor) | Semáforo de estado (verde / amarelo / vermelho / azul = falha) | ✅ montado |
+| Microchave fim de curso KW12 | NA, com haste | Sensor de tampa: a tampa aperta a haste ao fechar | ✅ comprada (substitui a chave tátil da N1) |
+| Botão de painel PBS-11B | sem trava | Reset local após QUEBRA | ✅ comprado (substitui a chave tátil da N1) |
+| Buzzer | ativo | Alarme sonoro (local **e** comandável) | ✅ montado |
+| **Módulo relé 2 canais** | 5 V, active-low, **1 canal usado**, `VCC` no `VIN` | Aciona o sinalizador de retenção | ✅ montado (passar de 3V3 para `VIN`) |
+| **Sinalizador de retenção** | LED vermelho de 5 mm + 330 Ω, ligado ao 5 V pelo contato do relé | Marca fisicamente a caixa "sob suspeita, reter" | ✅ no kit |
+| Alimentação | power bank + cabo micro-USB | Energia em campo | ⚠️ separar da equipe |
+| Caixa térmica pequena | isopor ou similar | Corpo do produto | ❌ **a providenciar pelo grupo** |
 
-O circuito está **montado em protoboard** e a pinagem confere com a tabela da seção 7. O único item da lista que não foi adquirido é o farol do sinalizador — o relé que o acionaria está montado e funcional.
+### Estação de ventilação `VENT-01` (só atua)
 
-> **Sensor real:** DHT11 (o do kit), com plano B de troca condicionado ao experimento do RISCO-01.
-> **Atuadores reais:** (a) **buzzer + LED RGB** como alerta local, agora também comandáveis remotamente; (b) **relé acionando o sinalizador de retenção**, atuador físico novo, comandado exclusivamente por MQTT com confirmação.
+| Componente | Modelo / especificação | Função no projeto | Situação |
+|---|---|---|---|
+| **ESP32 DevKit V1** | 30 pinos, igual ao da CF-01 | Controlador + conectividade | ✅ comprado |
+| Ventoinha 80 mm | 12 V, 0,15 A | O **exaustor** do CP12: atuador da regra do R8 | ✅ comprada |
+| **Módulo relé 1 canal** | SRD-05VDC, 5 V, contato 10 A | O **módulo de potência** do CP12: liga e desliga a ventoinha | ✅ comprado (nível de acionamento a confirmar) |
+| Fonte 12 V 1 A | plugue P4 | Alimenta a estação inteira (uma tomada) | ✅ comprada |
+| Conector P4 fêmea com borne | — | Recebe o plugue da fonte sem cortar o cabo | ✅ comprado |
+| Regulador step-down LM2596 | ajustado em **5,0 V** | 12 V → 5 V no `VIN` do ESP32 | ✅ comprado |
+| LED RGB | cátodo comum, 3 × 220 Ω | Estado da estação | ✅ comprado |
+
+### Montagem (as duas)
+
+Protoboard e jumpers (M-M, M-F, F-F) para a bancada. Para a versão compacta, se sobrar tempo: placas perfuradas 5×7 cm, barras de pinos fêmea (soquete do ESP32) e macho, bornes KF301. Tudo comprado.
+
+Sem peça própria: **termômetro digital de referência** para validar o DHT11 (risco 01). Ainda **não temos**.
+
+> **Sensor real:** DHT11 (o do kit).
+> **Atuadores reais:** (a) **buzzer + LED RGB** como alerta local, também comandáveis remotamente; (b) **relé acionando o sinalizador de retenção**; (c) na N3, **relé da VENT-01 acionando a ventoinha de 12 V**, comandado pelo backend com confirmação.
 
 ## 7. Arquitetura específica do projeto
 
@@ -298,7 +313,7 @@ Registradas de propósito, são escolhas conscientes, não esquecimentos.
 - **Rede dependente de infraestrutura local.** A N1 assume um broker Mosquitto acessível por Wi-Fi (bancada) ou hotspot (campo). O funcionamento *offline com buffer* fica declarado como evolução da N2 — ver RISCO-02.
 - **Sem persistência no dispositivo.** Não há cartão SD nem RTC no arranjo. O histórico vive no broker/painel; os tempos do device são relativos à energização (`millis()`), não a um relógio real.
 - **Não medimos a temperatura interna da caixa.** O DHT11 não opera abaixo de 0 °C e tem erro de ±2 °C — maior que a tolerância de +2 a +8 °C. Medir o ambiente de exposição, onde o sensor está dentro da especificação, é decisão técnica deliberada.
-- **O sinalizador de retenção é demonstrado pelo próprio relé.** O módulo relé está montado e é acionado por MQTT, mas a lâmpada/torre de 12 V que ele comandaria em uso real não foi adquirida. Na demonstração da N1 o acionamento é comprovado pelo **contato fechando** — LED indicador do módulo e clique audível. O contato é a seco, então trocar a demonstração pelo farol real não altera o firmware nem o circuito de controle: é só ligar a carga nos bornes.
+- **O sinalizador de retenção é um LED, não um farol.** Na N1 o acionamento foi comprovado só pelo contato do relé fechando (LED do módulo e clique). Na N3 o relé acende um LED vermelho de 5 mm. Em uso real seria uma lâmpada ou torre de sinalização: o contato é a seco, então a troca não altera o firmware nem o circuito de controle, só a carga ligada nos bornes.
 - **Confirmações publicadas em QoS 0.** O contrato da seção 7 prevê QoS 1 para `confirmacao`, mas a biblioteca `PubSubClient` só publica em QoS 0. A limitação está registrada no código e aceita nesta etapa: a confirmação é reenviável pelo operador, que reemite o comando se não vir o ACK.
 
 ## 13. Dúvidas para o professor

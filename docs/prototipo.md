@@ -1,6 +1,6 @@
 # Protótipo do produto — Sentinela de Cadeia Fria
 
-Rascunho visual do que está sendo construído. Duas faces: o **arranjo físico** na caixa térmica (o que o técnico manuseia) e o **painel da coordenação** (a interface que consome a telemetria MQTT). Nada foi montado ainda — é um esboço para guiar a construção.
+Rascunho visual do que está sendo construído. Duas faces: o **arranjo físico** na caixa térmica (o que o técnico manuseia) e o **painel da coordenação** (a interface que consome a telemetria MQTT). Esboço da N1 para guiar a construção; as peças definitivas estão no README, seção 6.
 
 ## 1. Arranjo físico (bancada de campo)
 
@@ -38,7 +38,7 @@ Rascunho visual do que está sendo construído. Duas faces: o **arranjo físico*
 | 🟡 amarelo | tampa aberta, orçamento sendo consumido |
 | 🔴 vermelho (piscando) + buzzer | QUEBRA — travado até reset |
 
-O **sinalizador de retenção** (acionado pelo relé) é uma luz/torre separada, visível de longe, ligada **remotamente pela coordenação** para dizer "esta caixa fica retida, não use".
+O **sinalizador de retenção** (acionado pelo relé) é ligado **remotamente pela coordenação** para dizer "esta caixa fica retida, não use". No protótipo da N3 é um LED vermelho de 5 mm; em uso real seria uma luz ou torre visível de longe (ver README, seção 12).
 
 ## 2. Painel da coordenação (interface MQTT)
 
@@ -94,5 +94,5 @@ O painel é só uma casca visual sobre a [arquitetura MQTT](arquitetura-mqtt.md)
 ## 4. O que ainda é rascunho
 
 - A tecnologia do painel na N1 (Node-RED × app web × ferramenta genérica de MQTT) ainda será decidida — a tarefa 8 do backlog entrega telemetria; a escolha da casca visual pode ser simples.
-- O formato físico do sinalizador de retenção (LED de potência, lâmpada, torre de sinalização) depende do que for adquirido — tarefa 3.
+- ~~O formato físico do sinalizador de retenção depende do que for adquirido.~~ Decidido na N3: LED vermelho de 5 mm pelo contato do relé. Peças da N3 em [`n3/BOM.md`](n3/BOM.md).
 - Cores, ícones e disposição do painel são ilustrativos.
