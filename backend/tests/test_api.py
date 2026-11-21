@@ -35,6 +35,24 @@ def test_login_ok_e_perfil(client):
     assert client.post("/login", json={"username": "tec", "password": "senha-tec"}).json()["perfil"] == "tecnico"
 
 
+def test_semente_acompanha_mudanca_de_senha_do_env(client, monkeypatch):
+    """Regressao (21/11): trocar a senha no .env deixava o hash antigo no banco
+    (o semear so criava), e o login novo falhava ate editar o banco na mao."""
+    from app import config, db, security
+
+    monkeypatch.setenv("SEED_COORDENACAO_PASSWORD", "senha-nova")
+    config.get_settings.cache_clear()
+    with db.session_scope() as s:
+        security.semear_usuarios(s)
+    try:
+        ok = client.post("/login", json={"username": "coord", "password": "senha-nova"})
+        antiga = client.post("/login", json={"username": "coord", "password": "senha-coord"})
+        assert ok.status_code == 200 and antiga.status_code == 401
+    finally:
+        monkeypatch.undo()
+        config.get_settings.cache_clear()
+
+
 @pytest.mark.parametrize("u,s", [("coord", "errada"), ("naoexiste", "x"), ("", "")])
 def test_login_invalido_401(client, u, s):
     assert client.post("/login", json={"username": u, "password": s}).status_code == 401

@@ -39,7 +39,10 @@ def criar_token(usuario: Usuario) -> tuple[str, int]:
 
 
 def semear_usuarios(session: Session) -> None:
-    """Cria os usuarios-semente do .env (so se ainda nao existirem)."""
+    """Cria os usuarios-semente do .env e os mantem em dia com ele: se a senha
+    ou o perfil do .env mudou, o banco acompanha (o .env e a fonte da verdade
+    dos usuarios-semente; sem isso, trocar a senha no .env deixava o login antigo
+    valendo e o novo falhando)."""
     s = get_settings()
     for user, senha, perfil in (
         (s.seed_coordenacao_user, s.seed_coordenacao_password, "coordenacao"),
@@ -47,8 +50,14 @@ def semear_usuarios(session: Session) -> None:
     ):
         if not user or not senha:
             continue
-        if session.scalar(select(Usuario).where(Usuario.username == user)) is None:
+        existente = session.scalar(select(Usuario).where(Usuario.username == user))
+        if existente is None:
             session.add(Usuario(username=user, senha_hash=hash_senha(senha), perfil=perfil))
+        else:
+            if not confere_senha(senha, existente.senha_hash):
+                existente.senha_hash = hash_senha(senha)
+            if existente.perfil != perfil:
+                existente.perfil = perfil
     session.flush()
 
 
