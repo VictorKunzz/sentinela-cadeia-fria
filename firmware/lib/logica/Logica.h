@@ -156,7 +156,10 @@ struct TimerManual {
   TimerManual() : ativo(false), inicio(0) {}
   void inicia(uint32_t agora) { ativo = true; inicio = agora; }
   void cancela() { ativo = false; }
-  bool expirou(uint32_t agora) const { return ativo && (uint32_t)(agora - inicio) >= MANUAL_TIMEOUT_MS; }
+  // Diferenca COM SINAL: o `agora` do loop() pode ser lido um pouco antes do millis() que
+  // gravou `inicio` (o comando chega dentro de comum::atualizar). Sem sinal, agora < inicio
+  // virava um numero enorme e o MANUAL expirava na hora (rele soltava, comando nao confirmava).
+  bool expirou(uint32_t agora) const { return ativo && (int32_t)(agora - inicio) >= (int32_t)MANUAL_TIMEOUT_MS; }
 };
 
 // --- JSON: extracao simples de campos de comandos (objetos planos) ---

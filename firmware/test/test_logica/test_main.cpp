@@ -114,6 +114,21 @@ void test_manual_aguenta_virada_do_millis() {
   TEST_ASSERT_TRUE(t.expirou(0xFFFFFF00u + MANUAL_TIMEOUT_MS));
 }
 
+// Regressao (21/11, integracao com hardware): o `agora` do loop() e lido antes do
+// millis() que grava `inicio` dentro do callback do comando, entao agora < inicio
+// por alguns ms. Sem diferenca com sinal, isso virava ~4 bilhoes e o MANUAL
+// expirava na hora (o rele soltava e o comando ficava "nao confirmado").
+void test_manual_nao_expira_com_agora_um_pouco_antes_do_inicio() {
+  TimerManual t;
+  t.inicia(50000);
+  TEST_ASSERT_FALSE(t.expirou(50000 - 5));      // agora < inicio, por poucos ms
+  TEST_ASSERT_FALSE(t.expirou(50000 - 1000));
+  TEST_ASSERT_FALSE(t.expirou(50000));
+  // e a virada do millis() com o mesmo desencontro:
+  t.inicia(3u);
+  TEST_ASSERT_FALSE(t.expirou(0xFFFFFFFDu));    // agora = 3 - 6 (com wrap)
+}
+
 // --- Parse de comando ---
 void test_parse_comando_completo() {
   Comando c;
@@ -303,6 +318,7 @@ int main(int, char**) {
   RUN_TEST(test_sensor_duas_validas_saem_do_seguro);
   RUN_TEST(test_manual_expira_em_10_min);
   RUN_TEST(test_manual_aguenta_virada_do_millis);
+  RUN_TEST(test_manual_nao_expira_com_agora_um_pouco_antes_do_inicio);
   RUN_TEST(test_parse_comando_completo);
   RUN_TEST(test_parse_aceita_espacos_e_valor_numerico);
   RUN_TEST(test_parse_chave_dentro_de_valor_nao_engana);
