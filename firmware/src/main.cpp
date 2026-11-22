@@ -5,8 +5,9 @@
 // mais os modos do fluxograma do CP12 (5.3):
 //   AUTOMATICO : regra local (semaforo e alarme); rele so por comando/regra do backend.
 //   MANUAL     : comando de usuario aceito sobre rele/buzzer; volta em 10 min ou por "auto".
-//   SEGURO     : 3 leituras invalidas do sensor; orcamento congelado, LED azul;
-//                sai com 2 leituras validas.
+//   SEGURO     : 3 leituras invalidas de TEMPERATURA (NaN ou fora de 0-50 C); orcamento
+//                congelado, LED azul; sai com 2 leituras validas. Umidade fora de
+//                20-90 % invalida so a umidade (null), sem afetar temperatura nem SEGURO.
 
 #include <Arduino.h>
 #include <DHT.h>
@@ -328,12 +329,16 @@ void aoConectar() {
 void lerSensor() {
   float t = dht.readTemperature();
   float u = dht.readHumidity();
-  bool valida = logica::temperaturaValida(t) && logica::umidadeValida(u);
+  const logica::AvaliacaoLeitura av = logica::avaliaLeitura(t, u);
 
-  // Leitura invalida nao substitui a ultima valida (ate entrar em SEGURO).
-  if (valida) { ultimaTemperatura = t; ultimaUmidade = u; }
+  // So a TEMPERATURA decide o SEGURO e alimenta orcamento/R8. Temperatura
+  // invalida nao substitui a ultima valida (ate entrar em SEGURO).
+  if (av.temperaturaOk) ultimaTemperatura = t;
+  // Umidade fora da faixa (ex.: bafo satura o DHT11) invalida so a umidade:
+  // vai null na telemetria, sem afetar a temperatura nem o SEGURO.
+  ultimaUmidade = av.umidadeOk ? u : NAN;
 
-  switch (filtro.registra(valida)) {
+  switch (filtro.registra(av.temperaturaOk)) {
     case logica::Transicao::ENTROU:
       Serial.println("SENSOR: 3 leituras invalidas, entrando em SEGURO");
       manual.cancela();

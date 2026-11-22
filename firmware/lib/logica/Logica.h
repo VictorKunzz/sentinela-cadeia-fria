@@ -30,6 +30,21 @@ constexpr uint8_t VALIDAS_PARA_SAIR = 2;                       // leituras valid
 
 inline bool temperaturaValida(float t) { return !isnan(t) && t >= TEMP_MIN && t <= TEMP_MAX; }
 inline bool umidadeValida(float u) { return !isnan(u) && u >= UMID_MIN && u <= UMID_MAX; }
+
+// Resultado da avaliacao de uma leitura do DHT11. As duas grandezas sao validadas
+// SEPARADAMENTE: so a temperatura decide o SEGURO e alimenta orcamento/regra R8.
+// Umidade fora de 20-90 % (ex.: bafo/vapor satura o sensor) invalida apenas a
+// umidade (vai null na telemetria); a temperatura valida continua valendo.
+struct AvaliacaoLeitura {
+  bool temperaturaOk;
+  bool umidadeOk;
+};
+inline AvaliacaoLeitura avaliaLeitura(float t, float u) {
+  AvaliacaoLeitura a;
+  a.temperaturaOk = temperaturaValida(t);
+  a.umidadeOk = umidadeValida(u);
+  return a;
+}
 inline bool orcamentoConfigValido(float v) { return !isnan(v) && v >= ORC_CFG_MIN && v <= ORC_CFG_MAX; }
 
 // --- Modos ---

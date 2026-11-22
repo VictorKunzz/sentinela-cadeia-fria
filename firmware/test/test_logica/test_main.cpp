@@ -94,6 +94,46 @@ void test_sensor_duas_validas_saem_do_seguro() {
   TEST_ASSERT_FALSE(f.seguro);
 }
 
+// --- Avaliacao da leitura: temperatura e umidade validadas separadamente ---
+// Caso real (21/11): bafo no DHT11 -> 27,1 C com 91 % UR. So a umidade e invalida.
+void test_umidade_fora_da_faixa_nao_invalida_a_temperatura() {
+  AvaliacaoLeitura a = avaliaLeitura(27.1f, 91.0f);
+  TEST_ASSERT_TRUE(a.temperaturaOk);
+  TEST_ASSERT_FALSE(a.umidadeOk);
+  // e, alimentando o filtro com a temperatura, nunca entra em SEGURO
+  FiltroSensor f;
+  for (int i = 0; i < 20; i++) f.registra(avaliaLeitura(27.1f, 91.0f).temperaturaOk);
+  TEST_ASSERT_FALSE(f.seguro);
+}
+
+void test_umidade_nan_com_temperatura_ok_nao_entra_em_seguro() {
+  AvaliacaoLeitura a = avaliaLeitura(27.1f, NAN);
+  TEST_ASSERT_TRUE(a.temperaturaOk);
+  TEST_ASSERT_FALSE(a.umidadeOk);
+}
+
+void test_temperatura_fora_da_faixa_conta_para_o_seguro() {
+  FiltroSensor f;
+  Transicao ultima = Transicao::NENHUMA;
+  for (int i = 0; i < 3; i++) ultima = f.registra(avaliaLeitura(51.0f, 50.0f).temperaturaOk);
+  TEST_ASSERT_EQUAL((int)Transicao::ENTROU, (int)ultima);
+  TEST_ASSERT_TRUE(f.seguro);
+  // NaN de temperatura tambem
+  FiltroSensor g;
+  for (int i = 0; i < 3; i++) g.registra(avaliaLeitura(NAN, 50.0f).temperaturaOk);
+  TEST_ASSERT_TRUE(g.seguro);
+}
+
+void test_recuperacao_do_seguro_em_duas_validas_mesmo_com_umidade_ruim() {
+  FiltroSensor f;
+  for (int i = 0; i < 3; i++) f.registra(avaliaLeitura(NAN, NAN).temperaturaOk);
+  TEST_ASSERT_TRUE(f.seguro);
+  // temperatura volta ao normal; a umidade ainda saturada (91 %) nao atrapalha a saida
+  TEST_ASSERT_EQUAL((int)Transicao::NENHUMA, (int)f.registra(avaliaLeitura(26.0f, 91.0f).temperaturaOk));
+  TEST_ASSERT_EQUAL((int)Transicao::SAIU, (int)f.registra(avaliaLeitura(26.2f, 91.0f).temperaturaOk));
+  TEST_ASSERT_FALSE(f.seguro);
+}
+
 // --- Timer do modo MANUAL ---
 void test_manual_expira_em_10_min() {
   TimerManual t;
@@ -310,6 +350,10 @@ int main(int, char**) {
   UNITY_BEGIN();
   RUN_TEST(test_faixa_temperatura);
   RUN_TEST(test_faixa_umidade);
+  RUN_TEST(test_umidade_fora_da_faixa_nao_invalida_a_temperatura);
+  RUN_TEST(test_umidade_nan_com_temperatura_ok_nao_entra_em_seguro);
+  RUN_TEST(test_temperatura_fora_da_faixa_conta_para_o_seguro);
+  RUN_TEST(test_recuperacao_do_seguro_em_duas_validas_mesmo_com_umidade_ruim);
   RUN_TEST(test_faixa_config_orcamento);
   RUN_TEST(test_dedup_repetido_e_rejeitado);
   RUN_TEST(test_dedup_guarda_os_ultimos_10);

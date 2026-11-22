@@ -50,6 +50,8 @@ Prefixo: `sentinela/cadeia-fria/{deviceId}/`, com `deviceId` ∈ {`CF-01`, `VENT
 | orçamento | 0 a 600 u |
 | rssi | −120 a 0 dBm |
 
+**Temperatura e umidade são validadas separadamente no firmware.** Só a **temperatura** decide o modo `SEGURO` (3 leituras inválidas seguidas: `NaN` ou fora de 0–50 °C; sai com 2 válidas) e alimenta o orçamento e a regra R8. Umidade fora de 20–90 % (ou `NaN`) invalida **apenas a umidade**: ela vai `null` na telemetria, sem afetar a temperatura nem o `SEGURO`. *Limitação conhecida:* bafo ou vapor satura o DHT11 (UR > 90 %); a umidade volta sozinha assim que a leitura retorna à faixa.
+
 ## 3. Mensagens publicadas pelo dispositivo
 
 ### `status`
@@ -71,7 +73,7 @@ offline         (retido; publicado pelo broker como Last Will)
   "rssi": {"valor": -67, "unidade": "dBm"}
 }
 ```
-Com o sensor em falha (modo `SEGURO`), `temperatura` e `umidade` vão `null` e o orçamento fica congelado.
+Com o sensor em falha (modo `SEGURO`), `temperatura` e `umidade` vão `null` e o orçamento fica congelado. Com a temperatura válida e só a umidade fora da faixa, `umidade` vai `null` e o restante segue normal (ver seção 2).
 
 ### `evento` (mudança de estado ou de modo)
 ```json
