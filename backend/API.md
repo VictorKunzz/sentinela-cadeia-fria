@@ -114,8 +114,10 @@ Resposta (`Comando`):
 | `confirmado` | `executado` | `confirmado` | **sim** |
 | `recebido` | `rejeitado` | `rejeitado: <motivo>` | **sim** (o dispositivo recusou; ciclo encerrado) |
 | `nao_confirmado` | — | `não confirmado` | **sim** (sem resposta no prazo) |
+| `sem_efeito` | `executado` | `sem efeito: já estava assim` | **sim** (o dispositivo executou, mas o estado já era o pedido; `detalhe = "já estava assim"`) |
 
 `motivo` (quando rejeitado) ∈ `QUEBRA_ATIVA` `SEM_QUEBRA` `DUPLICADO` `ACAO_INVALIDA` `FORA_DA_FAIXA`. `detalhe` é texto livre (ex.: `modo manual`, ou `broker indisponivel: comando nao publicado`).
+**`sem_efeito` é informação neutra, não falha:** vale para `ligar` com o atuador já ligado, `desligar` já desligado, `silenciar`/`disparar` já no estado pedido e `auto` com o dispositivo fora do MANUAL (em AUTOMATICO ou SEGURO o `auto` não muda nada). Só ocorre quando o dispositivo **respondeu `executado`**: rejeição continua `rejeitado: <motivo>` e falta de resposta continua `nao_confirmado`. **Não entra em `/alertas`** nem na lista de problemas; a interface deve mostrá-lo em tom neutro (ex.: cinza/azul, "já estava assim"), sem destaque de alerta.
 Prazos de `nao_confirmado`: **5 s** sem `recebido`, **15 s** no total (configuráveis no `.env`). Uma confirmação tardia ainda atualiza o registro.
 Comandos gerados pela regra aparecem com `origem: "regra"` e `usuario: null`.
 

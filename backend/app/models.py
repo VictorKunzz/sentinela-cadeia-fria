@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Index, Integer, String, Text
+from sqlalchemy import false as sa_false
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 DT = DateTime(timezone=True)
@@ -71,6 +72,8 @@ class Comando(Base):
     resultado: Mapped[str | None] = mapped_column(String(12), nullable=True)  # aceito | rejeitado | executado
     motivo: Mapped[str | None] = mapped_column(String(20), nullable=True)
     detalhe: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    # No envio, o estado do dispositivo ja era o pedido? (comando sem efeito: vira `sem_efeito`, nao alerta)
+    ja_batia: Mapped[bool] = mapped_column(Boolean, default=False, server_default=sa_false())
     enviado_em: Mapped[datetime] = mapped_column(DT)
     recebido_em: Mapped[datetime | None] = mapped_column(DT, nullable=True)
     executado_em: Mapped[datetime | None] = mapped_column(DT, nullable=True)

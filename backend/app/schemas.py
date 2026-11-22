@@ -55,7 +55,7 @@ class ComandoOut(BaseModel):
     valor: float | None
     origem: str
     usuario: str | None
-    status: str  # enviado | recebido | executado | confirmado | nao_confirmado
+    status: str  # enviado | recebido | executado | confirmado | nao_confirmado | sem_efeito
     resultado: str | None  # aceito | rejeitado | executado
     motivo: str | None
     detalhe: str | None

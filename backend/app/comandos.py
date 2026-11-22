@@ -24,7 +24,7 @@ COMANDOS_POR_DISPOSITIVO = {
     "VENT-01": {"exaustor"},
 }
 ABERTOS = ("enviado", "recebido", "executado")  # ainda aguardando o proximo passo
-FINAIS = ("confirmado", "nao_confirmado")
+FINAIS = ("confirmado", "nao_confirmado", "sem_efeito")
 
 _ESPERADO = {"ligar": "ligado", "desligar": "desligado", "disparar": "ligado", "silenciar": "desligado"}
 
@@ -68,6 +68,7 @@ def criar_comando(
         status="enviado",
         enviado_em=agora,
     )
+    cmd.ja_batia = _ja_batia(session.get(Dispositivo, dispositivo_id), cmd)
     session.add(cmd)
     session.flush()
     cmd.command_id = f"c-{cmd.id:06d}"
@@ -101,6 +102,8 @@ def rotulo(cmd: Comando) -> str:
     """Texto pronto para a interface."""
     if cmd.status == "confirmado":
         return "confirmado"
+    if cmd.status == "sem_efeito":
+        return "sem efeito: já estava assim"
     if cmd.status == "nao_confirmado":
         return "não confirmado"
     if cmd.status == "recebido" and cmd.resultado == "rejeitado":
@@ -118,6 +121,20 @@ def _esperado(cmd: Comando):
         v = _ESPERADO.get(cmd.acao)
         return (cmd.comando, v) if v else None
     return None
+
+
+def _ja_batia(disp: Dispositivo | None, cmd: Comando) -> bool:
+    """O estado atual do dispositivo ja e o que o comando pede? (comando sem efeito)
+
+    `auto` so tem efeito em MANUAL: em AUTOMATICO ou SEGURO nao muda nada.
+    Sem estado conhecido nao ha como afirmar: devolve False (ciclo normal)."""
+    esp = _esperado(cmd)
+    estado = getattr(disp, "estado", None)
+    if esp is None or not estado:
+        return False
+    if cmd.acao == "auto":
+        return estado.get("modo") not in (None, "MANUAL")
+    return estado.get(esp[0]) == esp[1]
 
 
 def tentar_confirmar(session: Session, dispositivo_id: str, agora=None) -> None:
@@ -172,11 +189,16 @@ def aplicar_confirmacao(session: Session, conf: "contrato.Confirmacao", agora=No
             cmd.resultado = "aceito"
             cmd.recebido_em = cmd.recebido_em or agora
     else:  # executado
-        if cmd.resultado != "rejeitado" and cmd.status != "confirmado":
+        if cmd.resultado != "rejeitado" and cmd.status not in ("confirmado", "sem_efeito"):
             cmd.status = "executado"
             cmd.resultado = "executado"
             cmd.executado_em = agora
             cmd.recebido_em = cmd.recebido_em or agora  # o `aceito` pode ter se perdido (QoS 0)
+            if cmd.ja_batia:
+                # O dispositivo executou, mas o estado ja era o pedido: nada mudou, entao nao ha
+                # novo `estado` a esperar. Fecha como informacao neutra (nao e falha, nao alerta).
+                cmd.status = "sem_efeito"
+                cmd.detalhe = cmd.detalhe or "já estava assim"
     session.flush()
     tentar_confirmar(session, cmd.dispositivo_id, agora)
     return None
