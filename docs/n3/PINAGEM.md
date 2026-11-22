@@ -17,7 +17,7 @@ Pinos já usados em `firmware/src/main.cpp`:
 | LED RGB — vermelho | 25 | via resistor de 220 Ω |
 | LED RGB — verde | 26 | via resistor de 220 Ω |
 | LED RGB — azul | 33 | via resistor de 220 Ω; terminal comum (o mais longo, cátodo) → GND |
-| Relé do sinalizador (canal 1 do módulo de 2 canais) | 23 | módulo: `VCC` → **VIN** (5 V, nunca 3V3: causa brownout), `GND` → GND, `IN1` → GPIO 23. Active-low (`RELE_ATIVO_ALTO = false`) |
+| Relé do sinalizador (canal 1 do módulo de 2 canais) | 23 | módulo: `VCC` → **VIN** (5 V, nunca 3V3: causa brownout), `GND` → GND, `IN1` → GPIO 23. Active-low (`RELE_ATIVO_ALTO = false`). **Medido na bancada (20/11) com `VCC` em `VIN`:** `IN1` solto = solto; `IN1`→GND = aciona; `IN1`→3V3 = **solta**. Diferente do módulo de 1 canal da VENT-01, este módulo solta com `HIGH` de 3,3 V, então o `digitalWrite` normal do firmware da CF-01 serve (não precisa de open-drain) |
 | Sinalizador de retenção | — | no borne do relé: `COM` → VIN (5 V); `NA` → resistor 150 Ω → ânodo do LED vermelho; cátodo → GND (o CP12 cita LED de 10 mm; usamos o vermelho de 5 mm do kit) |
 
 Alimentação: power bank pelo micro-USB.
@@ -28,7 +28,7 @@ Segue o esquema elétrico do CP12 v1.0 (seção 5.1). O firmware da VENT-01 aind
 
 | Função | GPIO | Ligação |
 |---|---|---|
-| Relé da ventoinha (módulo 1 canal SRD-05VDC) | 23 | `VCC` → VIN (5 V), `GND` → GND, `IN` → GPIO 23. **Medido na bancada (20/11): módulo active-low** (aciona com `IN` em GND). **Não solta com `HIGH` de 3,3 V** do ESP32 (VCC do módulo em 5 V): o relé fica acionado. Por isso a saída deve ser **open-drain simulada**: *ligar* = `pinMode(23, OUTPUT)` + `digitalWrite(23, LOW)`; *desligar* = `pinMode(23, INPUT)` (pino flutuando; o módulo puxa a entrada para 5 V e o relé solta). Nunca escrever `HIGH` nesse pino. Conferir também se o módulo é opto-isolado (o CP12 diz que sim); se não for, declarar como limitação |
+| Relé da ventoinha (módulo 1 canal SRD-05VDC) | 23 | `VCC` → VIN (5 V), `GND` → GND, `IN` → GPIO 23. **Medido na bancada (20/11): módulo active-low** (aciona com `IN` em GND). **Não solta com `HIGH` de 3,3 V** do ESP32 (VCC do módulo em 5 V): o relé fica acionado. Por isso a saída deve ser **open-drain simulada**: *ligar* = `pinMode(23, OUTPUT)` + `digitalWrite(23, LOW)`; *desligar* = `pinMode(23, INPUT)` (pino flutuando; o módulo puxa a entrada para 5 V e o relé solta). Nunca escrever `HIGH` nesse pino. **Validado com `vent01_teste` (46 ciclos, LED e clique acompanham o Serial).** Conferir também se o módulo é opto-isolado (o CP12 diz que sim); se não for, declarar como limitação |
 | LED RGB de estado — vermelho | 25 | via resistor de 220 Ω · **opcional**, não está no esquema do CP12 |
 | LED RGB de estado — verde | 26 | via resistor de 220 Ω · opcional |
 | LED RGB de estado — azul | 33 | via resistor de 220 Ω; comum → GND · opcional |
