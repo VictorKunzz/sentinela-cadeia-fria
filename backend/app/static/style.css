@@ -113,6 +113,8 @@ input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--marca); 
 .msg { padding: 10px 12px; border-radius: 10px; font-size: .92rem; background: var(--neutro-fundo); }
 .msg.erro { background: var(--critico-fundo); color: var(--critico); }
 .msg.ok { background: var(--ok-fundo); color: var(--ok); }
+.msg.aviso { background: var(--aviso-fundo); color: var(--aviso); }
+.msg.neutro { background: var(--neutro-fundo); color: var(--neutro); }
 .nota { font-size: .85rem; color: var(--texto-2); }
 
 /* ---------- topo e abas ---------- */
@@ -241,6 +243,7 @@ input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--marca); 
 .pill.pend { background: var(--marca-fundo); color: var(--marca-forte); }
 .pill.ok { background: var(--ok-fundo); color: var(--ok); }
 .pill.aviso { background: var(--aviso-fundo); color: var(--aviso); }
+.pill.neutro { background: var(--neutro-fundo); color: var(--neutro); }
 .pill.erro { background: var(--critico-fundo); color: var(--critico); }
 .vazio { color: var(--texto-2); padding: 14px; text-align: center; background: var(--superficie); border: 1px dashed var(--borda); border-radius: 12px; }
 
