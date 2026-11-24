@@ -1,0 +1,63 @@
+name: CI
+
+# Roda a cada push e a cada pull request. Nenhum segredo real: o backend testa em
+# SQLite em memoria, o firmware compila com o secrets.example.h.
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend (pytest, Python 3.12)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
+      - name: Instalar dependencias
+        run: pip install -r backend/requirements-dev.txt
+      # Inclui validacao do contrato, histerese 29/31/27/25, commandId duplicado,
+      # permissao por perfil, Telegram e o simulador de dispositivos contra o backend.
+      - name: pytest
+        working-directory: backend
+        run: python -m pytest -q
+
+  compose:
+    name: Docker Compose (config valida)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validar compose.yaml com o .env.example
+        run: |
+          cp .env.example .env
+          docker compose config -q
+
+  firmware:
+    name: Firmware (PlatformIO)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.platformio
+          key: pio-${{ runner.os }}-${{ hashFiles('firmware/platformio.ini') }}
+      - name: Instalar PlatformIO
+        run: pip install platformio
+      # secrets.h nao esta no repositorio (credenciais): usa o modelo.
+      - name: Criar secrets.h a partir do modelo
+        run: cp firmware/include/secrets.example.h firmware/include/secrets.h
+      - name: Compilar CF-01 e VENT-01
+        working-directory: firmware
+        run: pio run -e esp32dev -e vent01
+      - name: Testes de logica pura (nativo)
+        working-directory: firmware
+        run: pio test -e native

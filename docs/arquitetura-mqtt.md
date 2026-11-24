@@ -1,5 +1,7 @@
 # Arquitetura MQTT — Sentinela de Cadeia Fria
 
+> **N3:** o contrato vigente é o [`CONTRATOS.md`](../CONTRATOS.md) (v1, com `deviceId` nos tópicos e `commandId`). Este documento descreve o contrato da N1, mantido como histórico, e não é duplicado lá.
+
 Camada de rede do projeto: tópicos, formatos de mensagem, confirmação de comandos e comportamento de reconexão. Complementa [`arquitetura-inicial.md`](arquitetura-inicial.md).
 
 ## Broker

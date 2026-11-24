@@ -1,0 +1,14 @@
+# ACL da N3 (ver CONTRATOS.md, secao 1).
+# O backend le tudo e e o unico que publica comandos.
+user backend
+topic readwrite sentinela/cadeia-fria/#
+topic read $SYS/#
+
+# Cada dispositivo (usuario = deviceId) publica so na propria arvore e assina so
+# os proprios comandos: uma caixa nao escreve nem le no espaco da outra.
+pattern write sentinela/cadeia-fria/%u/status
+pattern write sentinela/cadeia-fria/%u/telemetria
+pattern write sentinela/cadeia-fria/%u/evento
+pattern write sentinela/cadeia-fria/%u/estado
+pattern write sentinela/cadeia-fria/%u/confirmacao
+pattern read sentinela/cadeia-fria/%u/comando/+

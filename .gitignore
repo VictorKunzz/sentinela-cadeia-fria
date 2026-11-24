@@ -20,5 +20,17 @@ desktop.ini
 *.tmp
 ~$*
 
+# Segredos e artefatos do backend
+.env
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+
 # Cola de bancada, uso interno da equipe — não faz parte da entrega
 /ROTEIRO-LOCAL.md
+
+# Contexto de trabalho (equipe e Claude), não faz parte da entrega
+/docs/n3/ESTADO.md
+/docs/n3/PLANO-N3.md
+/docs/n3/sessoes/
