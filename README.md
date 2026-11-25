@@ -1,11 +1,11 @@
 # Sentinela de Cadeia Fria
 
-> **Internet das Coisas — N3** · Prof. Edson Vaz Lopes
-> Família temática: **Temperatura e Cadeia Fria**
+> **Internet das Coisas — N3** · Prof. Edson Vaz Lopes  
+> Família temática: **Temperatura e Cadeia Fria**  
 
-Um monitor de campo que mede **quanto tempo e sob que calor** um produto refrigerado ficou exposto durante o manuseio — o trecho da cadeia fria em que hoje ninguém mede nada — e **transmite isso em tempo real** para a coordenação, que pode **agir à distância**.
+Um monitor de campo que mede **quanto tempo e sob que calor** um produto refrigerado ficou exposto durante o manuseio — o trecho da cadeia fria em que hoje ninguém mede nada — e **transmite isso em tempo real** para a coordenação, que pode **agir à distância**.  
 
-**Problema:** a cadeia fria é vigiada nas pontas e cega no meio. Entre a geladeira da unidade e o caminhão refrigerado, a caixa térmica fica aberta na calçada, na bancada, ao sol — e ninguém registra. Quando um lote é descartado por suspeita, não há como saber se falhou o equipamento ou o manuseio.
+**Problema:** a cadeia fria é vigiada nas pontas e cega no meio. Entre a geladeira da unidade e o caminhão refrigerado, a caixa térmica fica aberta na calçada, na bancada, ao sol — e ninguém registra. Quando um lote é descartado por suspeita, não há como saber se falhou o equipamento ou o manuseio.  
 
 **Usuário:** o técnico de enfermagem em campanha de vacinação extramuros, que abre a tampa dezenas de vezes por turno; e a coordenação da unidade, que acompanha e decide à distância.
 
