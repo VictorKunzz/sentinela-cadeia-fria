@@ -1,4 +1,4 @@
-"""Notificacao por Telegram (item 1.8 / R15).
+"""Notificacao por Telegram (R15).
 
 Liga-se ao gancho de `notify.py`: quem decide QUANDO avisar sao os pontos que ja
 detectam a TRANSICAO (ingest.py: dispositivo ficou offline; regras.py: CF-01

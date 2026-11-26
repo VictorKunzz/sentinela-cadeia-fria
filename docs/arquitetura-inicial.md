@@ -1,6 +1,8 @@
 # Arquitetura inicial — Sentinela de Cadeia Fria
 
-Detalhamento da seção 7 do [README](../README.md). Tudo aqui é **preliminar**: nada foi montado em bancada ainda. A camada de rede (MQTT, reconexão, formatos de mensagem) tem documento próprio em [`arquitetura-mqtt.md`](arquitetura-mqtt.md).
+> **Documento histórico da N1.** O contrato e o sistema vigentes estão em [CONTRATOS.md](../CONTRATOS.md) e no [README](../README.md); este arquivo registra o protótipo como foi defendido na N1 e pode divergir do produto final.
+
+Detalhamento da arquitetura planejada na N1. Tudo aqui é **preliminar**: o documento é de antes da montagem em bancada; a pinagem e o firmware finais estão em [`n3/PINAGEM.md`](n3/PINAGEM.md) e em `firmware/`. A camada de rede (MQTT, reconexão, formatos de mensagem) tem documento próprio em [`arquitetura-mqtt.md`](arquitetura-mqtt.md).
 
 ## Visão geral
 
@@ -81,7 +83,7 @@ Três decisões deliberadas:
 ```
 consumo(T) = 1 + (T − 20 °C) / 10        [unidades por segundo, mínimo 0]
 
-orçamento inicial = 120 unidades          (PROVISÓRIO — ver tarefa 14)
+orçamento inicial = 120 unidades          (PROVISÓRIO — ver docs/orcamento-termico.md)
 ```
 
 | Temperatura ambiente | Consumo por segundo | Tempo até a quebra |
@@ -94,7 +96,7 @@ orçamento inicial = 120 unidades          (PROVISÓRIO — ver tarefa 14)
 
 A tabela é a melhor forma de explicar o conceito para quem não é da área: **na sombra você tem dois minutos, no sol você tem quarenta segundos.**
 
-> O valor de 120 unidades é um chute educado. Substituí-lo por um número com respaldo é a tarefa 14, e é a dúvida nº 1 dirigida ao professor.
+> O valor de 120 unidades é um chute educado. A discussão de um número com respaldo está em [`orcamento-termico.md`](orcamento-termico.md); o valor segue como indicador didático.
 
 ## Esboço do laço principal
 
@@ -192,9 +194,7 @@ Os tempos são relativos à energização da placa (`millis()`), não a um reló
 - o módulo relé é ***active-low***: fecha o contato em nível **baixo** (`RELE_ATIVO_ALTO = false`). Como o GPIO23 nasce baixo no *boot*, o nível de repouso é escrito antes de o pino virar saída, senão o contato fica fechado durante toda a inicialização.
 - os pinos escolhidos evitam os *strapping pins* do ESP32 (GPIO0/2/12/15) e os *input-only* (GPIO34–39).
 
-**Ainda a confirmar:**
-
-- o buzzer é **ativo** (basta nível alto) ou **passivo** (precisa de `tone()`/LEDC)? Muda a tarefa 15.
+**Resolvido depois:** o buzzer da montagem final é **ativo** (basta nível alto); ver [`n3/PINAGEM.md`](n3/PINAGEM.md).
 
 ## O que ficou de fora, e por quê
 

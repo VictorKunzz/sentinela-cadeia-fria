@@ -1,4 +1,4 @@
-"""Gancho de notificacao externa. O Telegram (item 1.8) registra aqui o seu
+"""Gancho de notificacao externa. O Telegram registra aqui o seu
 envio com `definir_notificador`; ate la, so loga."""
 import logging
 from collections.abc import Callable

@@ -6,7 +6,7 @@ Registro da frente Hardware. Serve para o código de cores ser o mesmo em todo o
 
 Marrom, laranja, azul, verde, cada um com o seu par "branco com listras finas da mesma cor" (o branco/cor vale como "branco"), mais variações (azul claro, verde claro). **Preto: pouco.** Não há vermelho.
 
-## Código de cores (a confirmar com o Victor antes de soldar)
+## Código de cores (convenção adotada)
 
 | Função | Cor |
 |---|---|
@@ -21,5 +21,5 @@ Marrom, laranja, azul, verde, cada um com o seu par "branco com listras finas da
 
 ## Notas
 
-- **Ventoinha:** o conector branco de 2 pinos aceita a ponta macho de um jumper (confirmado pelo Victor em 20/11). Dá para ligar sem cortar o conector.
+- **Ventoinha:** o conector branco de 2 pinos aceita a ponta macho de um jumper (confirmado em 20/11). Dá para ligar sem cortar o conector.
 - **LM2596 (ZX-001):** furos de solda nos 4 cantos (`IN+`, `IN−`, `OUT+`, `OUT−`), sem borne nem pino. Os furos grandes e redondos são de fixação, não se solda neles. `IN−` e `OUT−` são o mesmo GND: apitam entre si na continuidade, é normal.

@@ -157,7 +157,10 @@ def tentar_confirmar(session: Session, dispositivo_id: str, agora=None) -> None:
             ).all()
             confirmou = any(utc(e.recebido_em) >= enviado for e in recentes)
         elif cmd.comando == "config":
-            confirmou = estado_ok
+            # O orcamento inicial nao aparece no `estado` retido (so modo, atuadores e sensor),
+            # entao nao ha novo `estado` a esperar: o `executado` do dispositivo (que ja gravou
+            # na NVS) e a prova. Antes exigia `estado_ok` e ficava "nao confirmado" em hardware.
+            confirmou = True
         else:
             esp = _esperado(cmd)
             confirmou = bool(esp) and estado_ok and disp.estado.get(esp[0]) == esp[1]

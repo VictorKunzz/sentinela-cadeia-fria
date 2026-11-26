@@ -26,9 +26,9 @@
 // um prefixo unico e o mesmo valor em MQTT_TOPIC_PREFIX do .env do backend, ex.:
 // #define MQTT_TOPIC_PREFIX "sentinela-teste-a1b2c3/cadeia-fria"
 
-// Keep-alive (padrao 60 s, estavel via hotspot + broker publico). Com Mosquitto na
-// LAN, volte para 15 s para a deteccao de offline ser mais rapida:
-// #define MQTT_KEEPALIVE_S 15
+// Keep-alive (padrao do firmware: 60 s, estavel via hotspot + broker publico). Com Mosquitto na
+// LAN use 15 s (detecta offline em ~22 s em vez de ~90 s). Comente a linha para voltar a 60 s:
+#define MQTT_KEEPALIVE_S 15
 
 // --- OTA (R17) ---
 // Senha do ArduinoOTA. Sem ela a OTA fica desativada (nunca sobe sem senha).

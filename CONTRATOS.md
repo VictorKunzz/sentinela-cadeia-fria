@@ -1,6 +1,6 @@
 # CONTRATOS — MQTT do Sentinela de Cadeia Fria
 
-**`version: 1`** · congelado como v1 na seção 6 do CP12 v1.0 (27/10/2026). Este arquivo transcreve e detalha esse contrato: **tópicos, comandos e catálogo de erros não mudam**. Qualquer mudança incompatível exige `version: 2` e aviso às frentes de firmware e backend.
+**`version: 1`** · congelado como v1 na seção 6 do CP12 v1.0 (entrega de 27/10/2026); este arquivo é a versão detalhada e vigente. Ele transcreve e detalha esse contrato: **tópicos, comandos e catálogo de erros não mudam**. Qualquer mudança incompatível exige `version: 2` e aviso às frentes de firmware e backend.
 
 Dispositivos: `CF-01` (caixa, mede e publica) e `VENT-01` (estação de ventilação, só atua). Eles **nunca se falam**: tudo passa pelo backend, que é o **único** que publica comandos. A interface nunca fala com o broker.
 
@@ -16,7 +16,7 @@ Prefixo: `sentinela/cadeia-fria/{deviceId}/`, com `deviceId` ∈ {`CF-01`, `VENT
 | `telemetria` | dispositivo | ✔ | — | 0 | não | a cada 5 s |
 | `evento` | dispositivo | ✔ | ✔ | 0 | não | a cada mudança de estado ou de modo |
 | `estado` | dispositivo | ✔ | ✔ | 0 ¹ | **sim** | ao conectar e a cada mudança de atuador ou de modo |
-| `comando/<acao>` | **backend** | ✔ | ✔ | **1** (assinatura) | não | a pedido da coordenação ou de uma regra |
+| `comando/<comando>` | **backend** | ✔ | ✔ | **1** (assinatura) | não | a pedido da coordenação ou de uma regra |
 | `confirmacao` | dispositivo | ✔ | ✔ | 0 ¹ | não | por comando: 1ª resposta (aceito/rejeitado) e 2ª (executado) |
 
 ¹ **Limitação do PubSubClient:** o parâmetro de QoS só vale na assinatura e no *Last Will*; toda publicação do dispositivo sai em **QoS 0**. A perda de uma confirmação não deixa o painel inconsistente: o backend marca o comando como `nao_confirmado` no prazo (seção 5).
@@ -104,7 +104,7 @@ CF-01: `{…, "modo": "AUTOMATICO", "rele": "desligado", "buzzer": "desligado", 
 
 ## 4. Comandos (backend → dispositivo)
 
-Tópico `…/{deviceId}/comando/<acao>`, QoS 1, não retido. Payload:
+Tópico `…/{deviceId}/comando/<comando>` (o último segmento é o **nome do comando**; `acao` é um campo do payload), QoS 1, não retido. Payload:
 ```json
 {
   "version": 1, "deviceId": "VENT-01",
@@ -116,7 +116,7 @@ Tópico `…/{deviceId}/comando/<acao>`, QoS 1, não retido. Payload:
 - `commandId`: `c-` + 6 dígitos, gerado pelo backend, único. O dispositivo guarda os **últimos 10**; repetido → rejeitado sem executar (`DUPLICADO`).
 - `origem` ∈ {`usuario`, `regra`}. Comando `usuario` aceito de `rele`, `buzzer` ou `exaustor` leva o dispositivo ao modo `MANUAL` (`reset` e `config` não mudam o modo) (volta ao `AUTOMATICO` em **10 min** ou com `acao: "auto"`). Comando `regra` não muda o modo.
 
-| Dispositivo | Comando (`<acao>` no tópico) | `acao` aceitas | Faixa / regra |
+| Dispositivo | Comando (último segmento do tópico) | `acao` aceitas | Faixa / regra |
 |---|---|---|---|
 | CF-01 | `rele` (sinalizador de retenção) | `ligar`, `desligar`, `auto` | `desligar` com QUEBRA ativa → `QUEBRA_ATIVA` |
 | CF-01 | `buzzer` | `disparar`, `silenciar`, `auto` | — |
@@ -153,16 +153,16 @@ Tópico `…/{deviceId}/confirmacao`. O dispositivo publica **duas** mensagens p
 | `enviado` | backend registrou e publicou |
 | `recebido` | chegou `aceito` ou `rejeitado` (rejeitado encerra aqui, com o motivo) |
 | `executado` | chegou `executado` |
-| `confirmado` | o `estado` retido publicado depois reflete o pedido (`rele`/`buzzer`/`exaustor` iguais ao esperado; `reset` e `config` confirmam por `evento` `reset` / `estado`) |
+| `confirmado` | o `estado` retido publicado depois reflete o pedido (`rele`/`buzzer`/`exaustor` iguais ao esperado; `reset` confirma pelo `evento` `reset`; `config` confirma pelo próprio `executado`, porque o orçamento inicial não faz parte do `estado`) |
 | `nao_confirmado` | sem avançar no prazo: **5 s** para `recebido`, **15 s** no total (configuráveis no `.env`) |
 
-O firmware publica o `estado` em até 2 s após executar.
+O firmware publica o `estado` em até 2 s quando algum atuador, o modo ou o sensor mudam. Comandos que não mudam nada (`sem_efeito`) e o `config` não geram novo `estado`.
 
 ## 6. Erros no backend
 
 Mensagem que não passa na validação (JSON inválido, `version` ≠ 1, campo obrigatório ausente, fora da faixa, `deviceId` do payload diferente do tópico) vai para `mensagens_rejeitadas` com tópico, payload bruto e motivo, e é descartada.
 
-## 7. Detalhes acrescentados à v1 (revisar antes da tag `contrato-v1`)
+## 7. Detalhes acrescentados à v1
 
 O CP12 congela árvore, comandos, catálogo de erros e o formato dos exemplos. Este arquivo **detalhou** o que o CP12 deixou em aberto, sem alterar o que estava congelado:
 
@@ -173,3 +173,8 @@ O CP12 congela árvore, comandos, catálogo de erros e o formato dos exemplos. E
 5. Nomes dos eventos em minúsculas com `_` (`sensor_falha` como no CP12); `modo` no payload da telemetria; campo `detalhe`.
 6. Prazos do `nao_confirmado` (5 s / 15 s) e `ts: null` quando a hora não está sincronizada.
 7. Faixas de validação e `deviceId` do payload igual ao do tópico.
+8. **Reset:** o `reset` (botão ou comando) devolve a CF-01 ao `FECHADO`, restaura o orçamento, **apaga o sinalizador** e solta o silenciamento do buzzer.
+9. **VENT-01 em `SEGURO`:** se o exaustor ficar ligado por 15 minutos sem conexão com o broker, o dispositivo o desliga e entra em `SEGURO`; ao reconectar, volta ao `AUTOMATICO`.
+10. **Confirmação do `config`:** pelo `executado` (ver seção 5), porque o firmware não republica o `estado` nesse caso.
+
+> A tag `contrato-v1` marca o contrato no momento do congelamento. As correções posteriores (regra da umidade, QUEBRA tirando do modo manual, confirmação do `config`) estão neste arquivo e valem para a v1; a versão defendida é a da tag de release do repositório.
