@@ -78,9 +78,28 @@ flowchart LR
 
 O sistema entregue foi montado assim:
 
-- **Caixa térmica:** um cooler, que abriga os dois dispositivos. Os componentes da `CF-01` foram fixados em um **pedaço de papelão** que fica **do lado de fora**: os LEDs aparecem por furos no papelão e os fios ficam por trás. A **chave de tampa** fica na borda, para ser pressionada ao fechar, e só o **DHT11 fica pendurado para dentro do cooler**. A eletrônica da `CF-01` está soldada numa placa perfurada, com o ESP32 num soquete.
+- **Caixa térmica:** um cooler (caixa de isopor), que abriga os dois dispositivos. Os componentes da `CF-01` foram fixados em um **pedaço de papelão** que fica **do lado de fora**: os LEDs aparecem por furos no papelão e os fios ficam por trás. A **chave de tampa** fica na borda, para ser pressionada ao fechar, e só o **DHT11 fica pendurado para dentro do cooler**. A eletrônica da `CF-01` está soldada numa placa perfurada, com o ESP32 num soquete.
 - **VENT-01:** placa perfurada soldada (ESP32 em soquete, relé ligado por jumpers, bornes para a alimentação), colocada **dentro do cooler** junto com a ventoinha, com um pequeno recorte na borda por onde sai o cabo da fonte de **12 V** (uma tomada só). A ideia é usar a ventilação para ajudar a resfriar o interior.
 - **Alimentação:** a `CF-01` por power bank (USB), com teste de autonomia de 30 minutos concluído sem problemas; a `VENT-01` por fonte 12 V, com um regulador LM2596 ajustado em 5,0 V para o ESP32. O ESP32 nunca alimenta a ventoinha: ela só recebe 12 V pelo contato do relé.
+
+<p align="center">
+  <img src="docs/img/02-sistema-montado-led-verde.jpeg" alt="CF-01 no papelão forrado de fita preta, pendurada na borda do cooler, com a VENT-01 e a ventoinha visíveis dentro" width="32%">
+  <img src="docs/img/01-sistema-montado-quebra-led-vermelho.jpeg" alt="Sistema montado em funcionamento, com o LED vermelho aceso, ligado ao power bank" width="32%">
+  <img src="docs/img/03-sistema-montado-vista-angulada.jpeg" alt="Vista angulada do sistema: papelão da CF-01 na frente e, dentro do cooler, a ventoinha e a placa da VENT-01" width="32%">
+</p>
+
+Mais fotos e um vídeo, em [`docs/img/`](docs/img/):
+
+| Arquivo | O que mostra |
+|---|---|
+| [`04-caixa-de-papelao-antes-da-fita.jpeg`](docs/img/04-caixa-de-papelao-antes-da-fita.jpeg) | o papelão da `CF-01` antes de ser forrado com fita: botão de reset, buzzer e LEDs pelos furos |
+| [`05`](docs/img/05-interior-vista-superior-1.jpeg) e [`06`](docs/img/06-interior-vista-superior-2.jpeg) | interior do cooler visto de cima: `VENT-01`, ventoinha, DHT11 e chave de tampa |
+| [`07-chave-de-tampa-na-borda.jpeg`](docs/img/07-chave-de-tampa-na-borda.jpeg) | microchave KW12 encaixada na borda do isopor |
+| [`08`](docs/img/08-solda-placa-perfurada-1.jpeg), [`09`](docs/img/09-solda-placa-perfurada-2.jpeg) e [`10`](docs/img/10-solda-placa-perfurada-3.jpeg) | lado da solda das placas perfuradas |
+| [`11-esp32-na-placa-perfurada-vazia.jpeg`](docs/img/11-esp32-na-placa-perfurada-vazia.jpeg) | ESP32 posicionado na placa perfurada (5 × 7 cm) antes de soldar |
+| [`12-prototipo-na-protoboard.jpeg`](docs/img/12-prototipo-na-protoboard.jpeg) e [`13-bancada-de-montagem.jpeg`](docs/img/13-bancada-de-montagem.jpeg) | protótipo na protoboard e bancada de montagem |
+| [`14-componentes-comprados.jpeg`](docs/img/14-componentes-comprados.jpeg) | componentes da compra da N3 |
+| [`15-video-sistema.mp4`](docs/img/15-video-sistema.mp4) | vídeo do sistema montado |
 
 ### Componentes
 
