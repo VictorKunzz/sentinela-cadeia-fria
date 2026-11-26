@@ -1,411 +1,302 @@
 # Sentinela de Cadeia Fria
 
-> **Internet das Coisas — N3** · Prof. Edson Vaz Lopes  
-> Família temática: **Temperatura e Cadeia Fria**  
+[![CI](https://github.com/VictorKunzz/sentinela-cadeia-fria/actions/workflows/ci.yml/badge.svg)](https://github.com/VictorKunzz/sentinela-cadeia-fria/actions/workflows/ci.yml)
+![ESP32](https://img.shields.io/badge/ESP32-PlatformIO-orange)
+![FastAPI](https://img.shields.io/badge/backend-FastAPI%20%2B%20PostgreSQL-009688)
+![MQTT](https://img.shields.io/badge/MQTT-Mosquitto-660066)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED)
 
-Um monitor de campo que mede **quanto tempo e sob que calor** um produto refrigerado ficou exposto durante o manuseio — o trecho da cadeia fria em que hoje ninguém mede nada — e **transmite isso em tempo real** para a coordenação, que pode **agir à distância**.  
+Monitor de campo que mede **quanto tempo e sob que calor** um produto refrigerado ficou exposto durante o manuseio, o trecho da cadeia fria em que hoje ninguém mede nada, e **transmite isso em tempo real** para a coordenação, que pode **agir à distância**.
 
-**Problema:** a cadeia fria é vigiada nas pontas e cega no meio. Entre a geladeira da unidade e o caminhão refrigerado, a caixa térmica fica aberta na calçada, na bancada, ao sol — e ninguém registra. Quando um lote é descartado por suspeita, não há como saber se falhou o equipamento ou o manuseio.  
+> Projeto da disciplina **Internet das Coisas** (6º semestre, Católica SC), Prof. Edson Vaz Lopes. Família temática: **Temperatura e Cadeia Fria**.
 
-**Usuário:** o técnico de enfermagem em campanha de vacinação extramuros, que abre a tampa dezenas de vezes por turno; e a coordenação da unidade, que acompanha e decide à distância.
+## Sumário
 
-## Estado atual — herdado da N1
+- [O problema](#o-problema)
+- [Como funciona](#como-funciona)
+- [Funcionalidades](#funcionalidades)
+- [O sistema montado](#o-sistema-montado)
+- [Início rápido](#início-rápido)
+- [Usando o sistema](#usando-o-sistema)
+- [Estrutura do repositório](#estrutura-do-repositório)
+- [Testes e CI](#testes-e-ci)
+- [Requisitos do piso (R1 a R18)](#requisitos-do-piso-r1-a-r18)
+- [Limitações e o que mudou do planejado](#limitações-e-o-que-mudou-do-planejado)
+- [Documentação](#documentação)
+- [Equipe](#equipe)
 
-Protótipo de **uma caixa** em bancada, defendido na N1 com o checklist de enquadramento IoT **7/7**: ESP32 com DHT11 e chave de tampa, firmware não-bloqueante com máquina de estados e orçamento térmico, e camada MQTT completa — telemetria, eventos, presença com *Last Will*, comandos remotos com confirmação. Não há backend, banco nem interface: o papel de painel foi exercido por um cliente MQTT operado manualmente.
+## O problema
 
-## Para onde vai — N3 (defesa em 01/12/2026)
+A cadeia fria é vigiada nas pontas e cega no meio. A geladeira da unidade tem termômetro; o caminhão refrigerado também. Entre um e outro, a caixa térmica fica aberta na calçada, na bancada, ao sol, e ninguém registra. Quando um lote é descartado por suspeita, não há como saber **se falhou o equipamento ou o manuseio**; o relato disponível é *"acho que ficou uns cinco minutos aberto"*.
 
-De protótipo para **produto**: dois dispositivos — a caixa `CF-01`, que mede, e a estação de ventilação `VENT-01`, que só atua sobre um exaustor de 12 V — ligados a um **backend FastAPI** que valida, guarda em **PostgreSQL** e expõe a API para uma **interface web** com login e perfis — o técnico visualiza, a coordenação comanda. A decisão deixa de depender de alguém olhando: **se a caixa medir mais de 30 °C por 2 minutos, o backend liga o exaustor da `VENT-01` (e desliga abaixo de 26 °C); ao detectar uma quebra, aciona o sinalizador de retenção da caixa e avisa a coordenação pelo Telegram**. Os dois dispositivos nunca se falam direto. Tudo sobe com Docker Compose, com contrato MQTT versionado, OTA, testes e CI.
+O usuário principal é o **técnico de enfermagem em campanha de vacinação extramuros**, que abre a tampa dezenas de vezes por turno. O usuário secundário é a **coordenação da unidade**, que acompanha e decide à distância.
 
-📄 Proposta completa, conferência dos requisitos R1–R18 e arquitetura-alvo: [`docs/n3/CP12.md`](docs/n3/CP12.md)
+## Como funciona
 
-> O conteúdo a partir da seção 1 abaixo documenta o projeto como foi defendido na **N1**.
-
----
-
-## 1. Integrantes
-
-| Integrante | GitHub |
-|---|---|
-| Victor Henrique Kunz de Souza | `@victorkunzz` |
-| Henrique Cordeiro de Oliveira | `@rique1011` |
-| Nicholas Scoz dos Santos | `@nicholasscoz` |
-| Lucas Rogério Mendonça | `@mendoncaluucas` |
-| Kauã Henrique Lucindo | `@lucind0` |
-| Vinicius Steuernagel | `@steuer10` |
-
-## 2. Família temática
-
-**Temperatura e Cadeia Fria.**
-
-Dentro dessa família, escolhemos um recorte específico: em vez de monitorar o **equipamento** de refrigeração, monitorar o **manuseio** - o intervalo em que o produto está fora de qualquer equipamento e, portanto, fora de qualquer medição.
-
-## 3. Problema
-
-A cadeia fria é vigiada nas pontas e cega no meio. A geladeira da unidade tem termômetro. O caminhão refrigerado tem termômetro. Mas entre um e outro existe um intervalo sem instrumentação nenhuma: a caixa térmica aberta na calçada enquanto se separa a dose, o produto esperando na bancada durante o preparo, a bolsa deixada ao sol por alguns minutos porque apareceu uma fila.
-
-Esse intervalo não é registrado por ninguém. Quando um lote é descartado por suspeita de quebra de cadeia fria, não há como saber **se falhou o equipamento ou o manuseio** - e, sem saber, não há o que corrigir. O relato disponível é sempre o mesmo: *"acho que ficou uns cinco minutos aberto"*.
-
-O custo não é só o frasco perdido. É a revacinação das pessoas, a viagem repetida, e a dúvida que sobra sobre doses que talvez estivessem boas.
-
-**A evolução desta etapa:** o registro deixa de ser uma anotação de memória no fim do dia e passa a ser **telemetria em tempo real**. A coordenação enxerga o que acontece na bancada de campo enquanto acontece, e pode **sinalizar remotamente** um lote suspeito para retenção, sem depender do relato posterior do técnico.
-
-## 4. Usuário e contexto de uso
-
-**Usuário principal:** o técnico de enfermagem que conduz uma **campanha de vacinação extramuros** - escola, empresa, evento comunitário ou visita domiciliar.
-
-Nesse contexto ele:
-
-- transporta as doses em caixa térmica com bobinas de gelo, longe de qualquer geladeira;
-- abre e fecha a tampa dezenas de vezes ao longo do turno, uma por pessoa atendida;
-- trabalha ao ar livre, sob temperatura que pode passar de 30 °C;
-- preenche o registro de temperatura **de memória**, ao final do dia.
-
-É o cenário com mais aberturas, mais calor e menos instrumentação de toda a cadeia - e por isso o escolhido como piloto.
-
-**Usuário secundário:** a **coordenação da unidade**, que agora deixa de ser apenas leitora de um relatório posterior. Com a telemetria por MQTT, a coordenação:
-
-- acompanha estado, temperatura e orçamento de exposição de cada caixa em tempo real;
-- recebe alerta imediato quando uma caixa entra em QUEBRA;
-- pode **acionar remotamente** o sinalizador de retenção da caixa suspeita e disparar o alarme sonoro no dispositivo do técnico, para avisá-lo à distância.
-
-## 5. Objetivo da N1
-
-Construir um **protótipo conectado** que:
-
-1. detecte a abertura e o fechamento da tampa da caixa térmica;
-2. meça a temperatura do ambiente ao qual o conteúdo fica exposto;
-3. acumule um **orçamento de exposição** que se esgota mais rápido quanto mais quente estiver o ambiente;
-4. sinalize o estado por um semáforo de três cores e dispare alarme sonoro ao esgotar o orçamento;
-5. **publique telemetria e eventos por MQTT** (temperatura, umidade, estado, orçamento, aberturas);
-6. **obedeça a comandos remotos** da coordenação (disparar/silenciar alarme, resetar quebra, ligar/desligar o sinalizador de retenção), **confirmando cada comando** de volta;
-7. **sobreviva a quedas de rede**, reconectando Wi-Fi e broker automaticamente e sinalizando ausência via *Last Will*;
-8. registre cada evento também no monitor serial, com duração e temperatura média.
-
-O que **não** é objetivo da N1: medir a temperatura interna da caixa com precisão metrológica, ou persistir histórico no próprio dispositivo sem broker. As razões estão em [Limitações assumidas](#12-limitações-assumidas-nesta-etapa).
-
-## 6. Componentes
-
-O projeto **migrou da BlackBoard UNO R3 para o ESP32** na N1, porque o ESP32 traz Wi-Fi nativo, que é o que viabiliza a conectividade. Para a N3, as peças que faltavam foram **compradas em 18/11/2026**. A tabela abaixo é a lista **definitiva** do que o projeto usa. Detalhes de compra estão em [`docs/n3/BOM.md`](docs/n3/BOM.md), e pinos e ligações em [`docs/n3/PINAGEM.md`](docs/n3/PINAGEM.md).
-
-### Caixa `CF-01` (mede)
-
-| Componente | Modelo / especificação | Função no projeto | Situação |
-|---|---|---|---|
-| **ESP32 DevKit V1** | 30 pinos, Wi-Fi 2,4 GHz | Controlador + conectividade | ✅ montado |
-| Sensor DHT11 | digital, ±2 °C | Temperatura e umidade do **ambiente de exposição** | ✅ montado |
-| LED RGB | **cátodo comum**, 3 × 220 Ω (um por cor) | Semáforo de estado (verde / amarelo / vermelho / azul = falha) | ✅ montado |
-| Microchave fim de curso KW12 | NA, com haste | Sensor de tampa: a tampa aperta a haste ao fechar | ✅ comprada (substitui a chave tátil da N1) |
-| Botão de painel PBS-11B | sem trava | Reset local após QUEBRA | ✅ comprado (substitui a chave tátil da N1) |
-| Buzzer | ativo, acionado por transistor **BC337** + 1 kΩ | Alarme sonoro (local **e** comandável) | ✅ montado · ❌ BC337 a providenciar |
-| **Módulo relé 2 canais** | 5 V, active-low, **1 canal usado**, `VCC` no `VIN` | Aciona o sinalizador de retenção | ✅ montado (passar de 3V3 para `VIN`) |
-| **Sinalizador de retenção** | LED vermelho de 5 mm + 150 Ω, ligado ao 5 V pelo contato do relé | Marca fisicamente a caixa "sob suspeita, reter" | ✅ no kit |
-| Alimentação | power bank + cabo micro-USB | Energia em campo | ⚠️ separar da equipe |
-| Caixa térmica pequena | isopor ou similar | Corpo do produto | ❌ **a providenciar pelo grupo** |
-
-### Estação de ventilação `VENT-01` (só atua)
-
-| Componente | Modelo / especificação | Função no projeto | Situação |
-|---|---|---|---|
-| **ESP32 DevKit V1** | 30 pinos, igual ao da CF-01 | Controlador + conectividade | ✅ comprado |
-| Ventoinha 80 mm | 12 V, 0,15 A | O **exaustor** do CP12: atuador da regra do R8 | ✅ comprada |
-| **Módulo relé 1 canal** | SRD-05VDC, 5 V, contato 10 A | O **módulo de potência** do CP12: liga e desliga a ventoinha | ✅ comprado (nível de acionamento a confirmar) |
-| Fonte 12 V 1 A | plugue P4 | Alimenta a estação inteira (uma tomada) | ✅ comprada |
-| Conector P4 fêmea com borne | — | Recebe o plugue da fonte sem cortar o cabo | ✅ comprado |
-| Regulador step-down LM2596 | ajustado em **5,0 V** | 12 V → 5 V no `VIN` do ESP32 | ✅ comprado |
-| Diodo 1N4007 | em antiparalelo na ventoinha | Roda livre da carga indutiva | ❌ a providenciar |
-| LED RGB | cátodo comum, 3 × 220 Ω | Estado da estação (opcional, fora do esquema do CP12) | ✅ comprado |
-
-### Montagem (as duas)
-
-Protoboard e jumpers (M-M, M-F, F-F) para a bancada. Para a versão compacta, se sobrar tempo: placas perfuradas 5×7 cm, barras de pinos fêmea (soquete do ESP32) e macho, bornes KF301. Tudo comprado.
-
-Sem peça própria: **termômetro digital de referência** para validar o DHT11 (risco 01). Ainda **não temos**.
-
-> **Sensor real:** DHT11 (o do kit).
-> **Atuadores reais:** (a) **buzzer + LED RGB** como alerta local, também comandáveis remotamente; (b) **relé acionando o sinalizador de retenção**; (c) na N3, **relé da VENT-01 acionando a ventoinha de 12 V**, comandado pelo backend com confirmação.
-
-## 7. Arquitetura específica do projeto
-
-Fluxo completo, das entradas físicas ao painel da coordenação, passando pelo broker MQTT.
+Dois dispositivos ESP32 conversam por MQTT com um backend. **Os dispositivos nunca se falam**: a caixa mede e publica; o backend decide e é o **único que publica comandos**; a estação de ventilação só atua. A interface web fala apenas com a API, nunca com o broker.
 
 ```mermaid
 flowchart LR
-    subgraph E["ENTRADAS"]
-        A["Chave de tampa<br/>(aberta / fechada)"]
-        B["DHT11<br/>(temperatura ambiente)"]
-        C["Botão de reset local"]
+    subgraph CF["Caixa CF-01 (mede)"]
+        S["DHT11 + chave de tampa"] --> E1["ESP32<br/>regra local sem rede"]
+        E1 --> A1["LED RGB · buzzer<br/>relé → sinalizador"]
     end
-    subgraph L["LÓGICA — ESP32 DevKit"]
-        D["Máquina de 3 estados"]
-        F["Acumulador do<br/>orçamento de exposição"]
-        M["Cliente MQTT<br/>(pub/sub + reconexão)"]
+    subgraph VE["Estação VENT-01 (só atua)"]
+        E2["ESP32"] --> A2["relé → ventoinha 12 V"]
     end
-    subgraph S["SAÍDAS LOCAIS"]
-        G["LED RGB<br/>(semáforo)"]
-        H["Buzzer<br/>(alarme)"]
-        R["Relé →<br/>sinalizador de retenção"]
-        I["Monitor serial"]
+    E1 <-->|Wi-Fi · MQTT| MQ(("Mosquitto<br/>autenticado + ACL"))
+    E2 <-->|Wi-Fi · MQTT| MQ
+    subgraph SRV["Servidor (Docker Compose)"]
+        MQ <--> API["Backend FastAPI<br/>valida · regras · API"]
+        API <--> DB[("PostgreSQL")]
     end
-    subgraph N["REDE"]
-        K(("Broker MQTT<br/>Mosquitto"))
-        P["Painel da<br/>coordenação"]
-    end
-    A --> D
-    B --> F
-    C --> D
-    D <--> F
-    D --> G
-    D --> H
-    D --> I
-    D <--> M
-    M <-->|Wi-Fi| K
-    K <--> P
-    P -->|comando| K
-    K -->|comando| M
-    M --> R
-    M -->|confirmação| K
+    API <-->|HTTP| UI["Interface web<br/>login · painel · comandos"]
+    API -->|alerta| TG["Telegram"]
 ```
 
-### Tópicos MQTT (nomes reais)
+**A caixa (`CF-01`)** tem uma máquina de estados local que funciona **sem rede**: `FECHADO → EXPOSTO → QUEBRA`. Com a tampa aberta, um **orçamento de exposição** é drenado mais rápido quanto mais quente estiver o ambiente; ao esgotar, a caixa entra em QUEBRA, acende o semáforo vermelho e dispara o alarme sonoro. Detalhes e a limitação dessa fórmula: [`docs/orcamento-termico.md`](docs/orcamento-termico.md).
 
-Prefixo base do dispositivo: **`sentinela/cadeia-fria`**. QoS 1 para comandos e confirmações, QoS 0 para telemetria periódica.
+**O backend** aplica duas regras e todo comando segue um ciclo com confirmação:
 
-| Direção | Tópico | Payload | Uso |
-|---|---|---|---|
-| 📤 device → broker | `sentinela/cadeia-fria/telemetria` | JSON: `temp`, `umid`, `estado`, `orcamento`, `aberturas`, `rssi` | Telemetria periódica (a cada 5 s) |
-| 📤 device → broker | `sentinela/cadeia-fria/evento` | JSON: `evento`, `dur_s`, `t_med`, `consumo`, `restante` | Eventos discretos (abertura, fechamento, quebra, reset) |
-| 📤 device → broker | `sentinela/cadeia-fria/status` | `online` / `offline` (retained, via *Last Will*) | Presença — base da detecção de reconexão |
-| 📥 broker → device | `sentinela/cadeia-fria/comando/alarme` | JSON: `{"acao":"disparar"\|"silenciar"}` | Coordenação aciona/silencia o buzzer à distância |
-| 📥 broker → device | `sentinela/cadeia-fria/comando/reset` | JSON: `{"acao":"reset"}` | Reconhece/reseta a QUEBRA remotamente |
-| 📥 broker → device | `sentinela/cadeia-fria/comando/rele` | JSON: `{"acao":"ligar"\|"desligar"}` | Liga/desliga o **sinalizador de retenção** |
-| 📤 device → broker | `sentinela/cadeia-fria/confirmacao` | JSON: `comando`, `acao`, `executado`, `estado_resultante` | **ACK** de cada comando recebido |
+- **Ventilação (R8):** se a caixa medir **mais de 30 °C por 2 minutos**, liga a ventoinha da `VENT-01`; desliga **abaixo de 26 °C** (histerese). Os limites são editáveis.
+- **QUEBRA:** liga o sinalizador de retenção da caixa e avisa a coordenação pelo Telegram.
+- **Ciclo de comando:** `enviado → recebido → executado → confirmado`, ou `rejeitado` (com motivo), `nao_confirmado` (sem resposta no prazo) e `sem_efeito` ("já estava assim"). Cada comando tem um `commandId`; repetido, é rejeitado sem executar.
 
-> O tópico `sentinela/cadeia-fria/comando/rele` é o análogo direto do exemplo `grupoX/comando/rele` do enunciado.
+## Funcionalidades
 
-### Máquina de estados
+- **Dois dispositivos** com papéis diferentes, cada um com `deviceId` próprio (`CF-01` e `VENT-01`).
+- **Contrato MQTT versionado** ([`CONTRATOS.md`](CONTRATOS.md), `version: 1`): tópicos por dispositivo, unidades, `commandId`, catálogo de erros, QoS e retenção justificados.
+- **Modos de operação** em cada dispositivo: automático, manual (volta sozinho em 10 min) e seguro (falha de sensor ou perda prolongada de contato).
+- **Interface web** com login e dois perfis: o **técnico** só visualiza; a **coordenação** visualiza e comanda. Painel por dispositivo, alertas, histórico com média móvel e lacunas visíveis, indicadores (tempo em exposição, aberturas, tempo em QUEBRA) e edição das regras.
+- **Notificação no Telegram** em QUEBRA e quando um dispositivo fica offline (opcional: precisa de um bot próprio).
+- **Presença** por *Last Will* (online/offline e último contato).
+- **OTA** (*over-the-air*): atualização do firmware pelo Wi-Fi, sem cabo, com senha. Implementado; ver as limitações abaixo.
+- **Mensagens inválidas** são descartadas e registradas (`mensagens_rejeitadas`), nunca gravadas.
+- **Orquestração** com Docker Compose; **testes automatizados** e CI no GitHub Actions.
 
-```mermaid
-stateDiagram-v2
-    [*] --> FECHADO
-    FECHADO --> EXPOSTO: tampa aberta
-    EXPOSTO --> FECHADO: tampa fechada
-    EXPOSTO --> QUEBRA: orçamento esgotado
-    QUEBRA --> FECHADO: botão de reset (local OU comando MQTT)
-```
+## O sistema montado
 
-| Estado | Semáforo | Buzzer | O que acontece |
-|---|---|---|---|
-| **FECHADO** | 🟢 verde | silencioso | orçamento preservado |
-| **EXPOSTO** | 🟡 amarelo | silencioso | orçamento sendo consumido |
-| **QUEBRA** | 🔴 vermelho | alarme | estado travado; sai por reset **local ou remoto**, e o reset é registrado e publicado |
+O sistema entregue foi montado assim:
 
-O relé (sinalizador de retenção) é **ortogonal à máquina de estados**: é ligado/desligado apenas por comando remoto da coordenação, independente do estado local. Isso é proposital — permite marcar para retenção mesmo uma caixa que já voltou ao verde.
+- **Caixa térmica:** um cooler, que abriga os dois dispositivos. Os componentes da `CF-01` foram fixados em um **pedaço de papelão** que fica **do lado de fora**: os LEDs aparecem por furos no papelão e os fios ficam por trás. A **chave de tampa** fica na borda, para ser pressionada ao fechar, e só o **DHT11 fica pendurado para dentro do cooler**. A eletrônica da `CF-01` está soldada numa placa perfurada, com o ESP32 num soquete.
+- **VENT-01:** placa perfurada soldada (ESP32 em soquete, relé ligado por jumpers, bornes para a alimentação), colocada **dentro do cooler** junto com a ventoinha, com um pequeno recorte na borda por onde sai o cabo da fonte de **12 V** (uma tomada só). A ideia é usar a ventilação para ajudar a resfriar o interior.
+- **Alimentação:** a `CF-01` por power bank (USB), com teste de autonomia de 30 minutos concluído sem problemas; a `VENT-01` por fonte 12 V, com um regulador LM2596 ajustado em 5,0 V para o ESP32. O ESP32 nunca alimenta a ventoinha: ela só recebe 12 V pelo contato do relé.
 
-### O orçamento de exposição
+### Componentes
 
-O aparelho não conta apenas segundos, conta **segundos ponderados pelo calor**. Um minuto de tampa aberta numa sala a 20 °C não agride o produto do mesmo modo que um minuto na calçada a 33 °C.
-
-```
-consumo por segundo = 1 + (T_ambiente − 20 °C) / 10
-```
-
-A 20 °C consome 1 unidade por segundo; a 30 °C, 2 unidades; a 40 °C, 3. O orçamento total parte de um valor provisório de **120 unidades**, equivalente a dois minutos abertos em ambiente ameno.
-
-> **O número 120 é provisório e não tem respaldo externo ainda.** Redefini-lo com base em referência real é a tarefa 14 do backlog, e é a primeira dúvida dirigida ao professor.
-
-### Pinagem (ESP32)
-
-**Confirmada na bancada** — o circuito está montado nesses pinos. No ESP32 **qualquer GPIO pode gerar PWM** via periférico LEDC, então a escolha de pinos é mais livre que na UNO - evitamos apenas os pinos de *boot/strapping* e os *input-only*.
-
-| GPIO | Componente | Observação |
+| Dispositivo | Componente | Função |
 |---|---|---|
-| GPIO4 | DHT11 (dados) | pull-up de 10 kΩ recomendado |
-| GPIO18 | Chave de tampa | `INPUT_PULLUP` |
-| GPIO19 | Botão de reset local | `INPUT_PULLUP` |
-| GPIO27 | Buzzer | LEDC/`tone` — conferir se ativo ou passivo |
-| GPIO25 / GPIO26 / GPIO33 | LED RGB — vermelho / verde / azul | **cátodo comum** (comum no GND, um resistor por cor) |
-| GPIO23 | Relé (sinalizador de retenção) | saída digital → `IN1` do módulo; `VCC` em 5 V/VIN; **acionamento em nível baixo** |
-| (ADC1: GPIO34/35/32) | reservado p/ sensor analógico do plano B | ver RISCO-01 revisitado |
+| `CF-01` | ESP32 DevKit V1 (30 pinos) | controlador e Wi-Fi |
+| `CF-01` | Sensor DHT11 | temperatura e umidade do **ambiente de exposição** (não do produto) |
+| `CF-01` | Microchave fim de curso KW12 | sensor de tampa |
+| `CF-01` | Botão de painel PBS-11B | reset local da QUEBRA |
+| `CF-01` | LED RGB (cátodo comum) | semáforo de estado |
+| `CF-01` | Buzzer ativo | alarme sonoro, também comandável |
+| `CF-01` | Módulo relé 2 canais (1 usado) + LED vermelho com resistor | sinalizador de retenção |
+| `VENT-01` | ESP32 DevKit V1 (30 pinos) | controlador e Wi-Fi |
+| `VENT-01` | Módulo relé 1 canal SRD-05VDC | liga e desliga a ventoinha |
+| `VENT-01` | Ventoinha 80 mm, 12 V, 0,15 A | exaustor |
+| `VENT-01` | Fonte 12 V 1 A + conector P4 + LM2596 | alimentação em uma tomada |
 
-O LED RGB foi confirmado como **cátodo comum**: o firmware aciona em nível alto (`LED_ATIVO_ALTO = true`). O módulo relé foi confirmado como ***active-low***, comportamento comum em módulos opto-isolados: o contato fecha com nível **baixo** (`RELE_ATIVO_ALTO = false`). Como o GPIO23 nasce em nível baixo no *boot*, o nível de repouso é gravado no pino antes de ele virar saída — caso contrário o sinalizador daria um pisco a cada energização da placa.
+Pinos e ligações: [`docs/n3/PINAGEM.md`](docs/n3/PINAGEM.md). Lista de compra: [`docs/n3/BOM.md`](docs/n3/BOM.md). Registro de montagem das placas: [`docs/n3/montagem/`](docs/n3/montagem/).
 
-📄 Detalhamento do firmware e da camada MQTT em [`docs/arquitetura-inicial.md`](docs/arquitetura-inicial.md) e [`docs/arquitetura-mqtt.md`](docs/arquitetura-mqtt.md).
-
-🧪 O que foi efetivamente exercitado no sistema — com as saídas capturadas, a conferência da fórmula do orçamento contra medições reais e o que **ainda não foi testado** — está em [`docs/testes.md`](docs/testes.md).
-
-## 8. Protótipo do produto
-
-Rascunho visual do que está sendo construído — o arranjo físico na caixa térmica **e** o painel que a coordenação vê. Detalhamento e wireframes em [`docs/prototipo.md`](docs/prototipo.md).
-
-```
-   ARRANJO FÍSICO (bancada de campo)              PAINEL DA COORDENAÇÃO (MQTT)
-   ┌───────────────────────────────┐             ┌──────────────────────────────┐
-   │  CAIXA TÉRMICA                 │             │  SENTINELA · Caixa CF-01     │
-   │   ┌──────────────┐            │   Wi-Fi     │  Estado:  🟡 EXPOSTO         │
-   │   │ tampa ┄┄ chave│───┐        │ ~~~~~~~~►  │  Temp:    31.2 °C  UR 58%    │
-   │   └──────────────┘   │ ESP32  │   MQTT      │  Orçamento: ▓▓▓▓░░░░ 44.8    │
-   │   [DHT11]  🟢🟡🔴 LED │  +     │             │  Aberturas hoje: 2           │
-   │   [buzzer]  [relé]────┼─► 🚨   │             │  [ Disparar alarme ]         │
-   │                       │ farol  │             │  [ Reset remoto ]            │
-   │   [botão reset]───────┘        │             │  [ Ligar sinalizador ⏻ ]     │
-   └───────────────────────────────┘             └──────────────────────────────┘
-```
-
-## 9. Backlog
-
-Cada tarefa carrega um critério de conclusão verificável, o "pronto quando". O backlog cobre **todos os requisitos mínimos da N1**: sensor, atuador, circuito, Wi-Fi, MQTT, tópico de comando, confirmação, reconexão, documentação e demonstração.
-
-| # | Tarefa | Requisito N1 | Responsável | Pronto quando | Status |
-|---|---|---|---|---|---|
-| 1 | Criar repositório e adicionar colaboradores | documentação | Victor | todos conseguem dar push | ✅ concluída |
-| 2 | README inicial (Aula 02) | documentação | Victor | os 10 itens exigidos presentes | ✅ concluída |
-| 3 | Conferir e fotografar o kit + listar o que falta comprar | hardware | Victor | lista com quantidades em `docs/` | 🔄 em andamento |
-| 4 | Semáforo (LED RGB) nas 3 cores no ESP32 | atuador / circuito | Lucas | 3 cores alternam em sequência de 1 s | ✅ concluída |
-| 5 | Ler o DHT11 e imprimir T e UR no serial | sensor | Lucas | 10 leituras plausíveis, 1/s | ✅ concluída |
-| 6 | Ler a chave de tampa com debounce | circuito | Lucas | 20 aberturas geram exatamente 20 eventos | ✅ concluída |
-| 7 | Conectar o ESP32 ao Wi-Fi com reconexão | **Wi-Fi / reconexão** | Lucas | derruba o AP e o ESP reconecta sozinho < 15 s | ✅ concluída |
-| 8 | Publicar telemetria e eventos no broker MQTT | **MQTT** | Lucas | painel recebe telemetria a cada 5 s | ✅ concluída |
-| 9 | Assinar `comando/*` e executar com confirmação | **tópico de comando / confirmação** | Lucas | comando de relé liga o sinalizador e volta ACK | ✅ concluída |
-| 10 | *Last Will* (`status=offline`) + reconexão MQTT | **reconexão** | Lucas | matar o device marca `offline` no painel (~90 s com o keep-alive atual de 60 s; ~22 s com 15 s no Mosquitto local da N3) | ✅ concluída |
-| 11 | Máquina de 3 estados integrando tudo | circuito / lógica | Lucas | ciclo FECHADO→EXPOSTO→QUEBRA→reset validado | ✅ concluída |
-| 12 | Relé + sinalizador de retenção comandado por MQTT | **atuador** | Lucas / Victor | comando remoto liga/desliga o farol com ACK | 🔄 em andamento (nível active-low do módulo resolvido; falta o sinalizador físico) |
-| 13 | Medir o tempo de resposta do DHT11 (RISCO-01) | risco | Nicholas / Vinicius | tabela tempo × temperatura + conclusão | ⬜ A fazer |
-| 14 | Definir o limite de exposição com fonte externa | documentação | A definir | número no README com referência citada | ⬜ A fazer |
-| 15 | Padrão sonoro do alarme no buzzer | atuador | A definir | distinguível de um bipe comum a 2 m | ⬜ A fazer |
-| 16 | Roteiro de demonstração da N1 | **demonstração** | A definir | passo a passo que exercita todos os requisitos | ⬜ A fazer |
-
-**Legenda:** ⬜ não iniciada · 🔄 em andamento · 📝 rascunho existe, aguardando validação · ✅ concluída
-
-> **O que já existe em firmware (tarefas 4–12).** O `firmware/src/main.cpp` implementa e compila a camada física e a camada de rede inteiras: semáforo RGB, leitura do DHT11 com tratamento de `NaN`, debounce reutilizável das chaves, máquina de estados `FECHADO`/`EXPOSTO`/`QUEBRA` com orçamento térmico, conexão Wi-Fi com reconexão automática não-bloqueante (`manterWifi()`), cliente MQTT com *Last Will* e reconexão com backoff exponencial (`manterMqtt()`), telemetria periódica, eventos discretos, assinatura de `comando/+` e confirmação de cada comando — incluindo o acionamento do relé.
->
-> Essas tarefas seguem como **em andamento**, e não concluídas, porque os critérios de "pronto quando" exigem **validação com o circuito montado**, que só agora passou a ser possível. A camada MQTT foi exercitada contra broker público em simulador; falta repetir com o hardware real e com Mosquitto local. Nas tarefas 7 e 10, especificamente, falta provocar a queda da rede com a placa em bancada — o simulador não permite derrubar o ponto de acesso.
-
-## 10. Primeiro risco técnico (revisitado)
-
-O risco registrado na Aula 02 **continua sendo o principal** e foi revisto à luz de eletrônica (Aula 03) e ADC (Aula 04). Um segundo risco foi aberto pela decisão de conectividade.
-
-### RISCO-01 — O DHT11 pode ser lento demais para o que o projeto mede *(mantido, atualizado)*
-
-O projeto mede exposições de **30 a 60 segundos**; o DHT11 entrega **1 leitura/s**, resolução de 1 °C e erro de ±2 °C, além de inércia térmica do encapsulamento. Se essa inércia for de dezenas de segundos, a temperatura média sai **subestimada** e o orçamento consome devagar demais — uma **falha silenciosa**.
-
-**Atualização à luz da Aula 03/04:** o plano B (trocar o DHT11) hoje é mais barato com o ESP32. As alternativas analógicas (**LM35, termistor NTC**) passam a usar o **ADC do ESP32**, e aí entram considerações de Aula 04: o ADC do ESP32 é de 12 bits mas **não-linear nas extremidades** e precisa de **calibração** (curva/atenuação) para virar temperatura confiável. O **DS18B20** (digital, 1-Wire) evita o ADC por completo e continua sendo a primeira opção do plano B.
-
-📄 Protocolo completo, critério de decisão e plano B em [`docs/risco-01-dht11.md`](docs/risco-01-dht11.md).
-
-### RISCO-02 — Disponibilidade de rede em campo *(novo, criado pela conectividade)*
-
-A conectividade que a N1 exige colide com a realidade do uso extramuros: **escola, calçada e visita domiciliar raramente têm Wi-Fi disponível**. Se o dispositivo depender de uma rede que não existe no local, a telemetria fica muda justamente onde ela mais importa.
-
-**Decisão para a N1:** o protótipo é validado em bancada com **broker Mosquitto local** (PC/Raspberry Pi) sobre Wi-Fi controlado. Em campo, o caminho previsto é **hotspot do celular do técnico**; store-and-forward (buffer local até reconectar) fica como evolução da N2. É por isso que a reconexão automática e o *Last Will* são requisitos de primeira classe, e não detalhe — a rede **vai** cair, e o sistema precisa se comportar quando isso acontecer.
-
-## 11. O que a Aula 04 mudou no projeto
-
-A Aula 04 (ADC e conectividade) provocou a revisão mais profunda que o projeto teve até aqui. Três decisões saíram dela:
-
-- **Troca de placa.** A entrega da Aula 02 previa uma UNO R3 operando offline, com o registro sendo lido depois no serial. Com a exigência de conectividade, migramos para o **ESP32**, que traz Wi-Fi nativo — e isso reescreveu a arquitetura inteira da seção 7, não só a lista de componentes.
-- **Contrato de rede antes do código.** Em vez de sair publicando tópicos conforme a necessidade aparecesse, escrevemos primeiro o contrato completo em [`docs/arquitetura-mqtt.md`](docs/arquitetura-mqtt.md): tópicos, QoS, retenção, formatos JSON e comportamento de reconexão. O firmware veio depois, implementando o que já estava acordado — de modo que dispositivo e painel dependem do contrato, não um do outro.
-- **A restrição do ADC entrou no plano B.** Com o Wi-Fi ativo, o ADC2 do ESP32 fica indisponível. Como o DHT11 é digital, o sensor principal não é afetado; mas ficou fixado que qualquer sensor analógico de contingência terá de usar pinos do **ADC1** (GPIO34/35/32). Ver RISCO-01.
-
-## 12. Limitações assumidas nesta etapa
-
-Registradas de propósito, são escolhas conscientes, não esquecimentos.
-
-- **Rede dependente de infraestrutura local.** A N1 assume um broker Mosquitto acessível por Wi-Fi (bancada) ou hotspot (campo). O funcionamento *offline com buffer* fica declarado como evolução da N2 — ver RISCO-02.
-- **Sem persistência no dispositivo.** Não há cartão SD nem RTC no arranjo. O histórico vive no broker/painel; os tempos do device são relativos à energização (`millis()`), não a um relógio real.
-- **Não medimos a temperatura interna da caixa.** O DHT11 não opera abaixo de 0 °C e tem erro de ±2 °C — maior que a tolerância de +2 a +8 °C. Medir o ambiente de exposição, onde o sensor está dentro da especificação, é decisão técnica deliberada.
-- **O sinalizador de retenção é um LED, não um farol.** Na N1 o acionamento foi comprovado só pelo contato do relé fechando (LED do módulo e clique). Na N3 o relé acende um LED vermelho de 5 mm. Em uso real seria uma lâmpada ou torre de sinalização: o contato é a seco, então a troca não altera o firmware nem o circuito de controle, só a carga ligada nos bornes.
-- **Confirmações publicadas em QoS 0.** O contrato da seção 7 prevê QoS 1 para `confirmacao`, mas a biblioteca `PubSubClient` só publica em QoS 0. A limitação está registrada no código e aceita nesta etapa: a confirmação é reenviável pelo operador, que reemite o comando se não vir o ACK.
-
-## 13. Dúvidas para o professor
-
-1. **Referência para o limite de exposição.** Existe norma/recomendação oficial (PNI, ANVISA) de tempo máximo de caixa térmica aberta que possamos adotar como base, ou definimos uma heurística própria, desde que declarada como tal?
-2. **Broker.** Para a N1, é aceitável um broker público de teste (ex.: `test.mosquitto.org`) durante o desenvolvimento, entregando com Mosquitto local na demonstração?
-3. **Rede em campo.** O cenário de hotspot do celular é aceitável como resposta ao RISCO-02 na N1, ficando o buffer offline para a N2?
-4. **Rigor do modelo.** O "orçamento de exposição" é uma simplificação nossa da carga térmica. Basta estar declarado abertamente como heurística assumida?
-
-## 14. Como executar
+## Início rápido
 
 ### Pré-requisitos
 
-- **VS Code** com a extensão **PlatformIO**
-- Placa **ESP32** (`esp32dev`) e um cabo USB **de dados** (cabo só de carga não serve)
-- Driver **CP210x** (Silicon Labs) — sem ele a placa não aparece como porta COM e o upload falha com *write timeout*
-- Um **broker MQTT** alcançável: Mosquitto local na mesma rede, ou um broker público de teste
+- **Docker** com Docker Compose
+- **PlatformIO** (extensão do VS Code ou CLI) para compilar e gravar os firmwares
+- Duas placas **ESP32 DevKit V1** e cabo USB **de dados**; driver **CP210x** no Windows
+- Rede Wi-Fi de **2,4 GHz** (o ESP32 não usa 5 GHz nem redes com login corporativo)
 
-### 1. Clonar e abrir
+> Não tem as placas? O [simulador](#sem-hardware) faz o papel das duas caixas.
+
+### 1. Clonar e configurar o servidor
 
 ```bash
 git clone https://github.com/VictorKunzz/sentinela-cadeia-fria.git
+cd sentinela-cadeia-fria
+cp .env.example .env
 ```
 
-Abra a pasta **`firmware/`** no VS Code — é onde está o `platformio.ini`. Abrir a raiz do repositório faz o PlatformIO não encontrar o projeto.
+Edite o `.env` e **troque todas as senhas** (banco, Mosquitto, JWT e usuários da interface). Principais variáveis:
 
-### 2. Criar o `secrets.h`
+| Variável | Para quê |
+|---|---|
+| `POSTGRES_PASSWORD` | senha do banco |
+| `MQTT_PASS_BACKEND`, `MQTT_PASS_CF01`, `MQTT_PASS_VENT01` | senha de cada cliente no Mosquitto (usuário = `deviceId`) |
+| `JWT_SECRET` | assinatura dos tokens de login |
+| `SEED_COORDENACAO_*`, `SEED_TECNICO_*` | usuários e senhas do painel |
+| `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | opcionais; vazios desligam o Telegram |
 
-O arquivo com credenciais **não é versionado**. Copie o modelo e preencha:
+### 2. Subir os serviços
+
+```bash
+docker compose up -d --build
+```
+
+Sobem **Mosquitto** (porta 1883, autenticado, com ACL por dispositivo), **PostgreSQL** e o **backend**. As migrações rodam sozinhas. Depois:
+
+- Painel: <http://localhost:8000/>
+- Documentação interativa da API: <http://localhost:8000/docs>
+
+Para os ESP32 alcançarem o broker, libere a **porta 1883** no firewall do computador e use o **IP do computador na rede** (nunca `localhost`).
+
+### 3. Gravar os firmwares
 
 ```bash
 cp firmware/include/secrets.example.h firmware/include/secrets.h
 ```
 
-```cpp
-#define WIFI_SSID      "sua_rede_2.4GHz"
-#define WIFI_PASSWORD  "sua_senha"
-
-#define MQTT_HOST      "192.168.0.10"   // IP do PC na LAN, nunca "localhost"
-#define MQTT_PORT      1883
-
-#define MQTT_CLIENT_ID "sentinela-cf01"
-```
-
-Três detalhes que costumam custar tempo:
-
-- O ESP32 **só opera em 2,4 GHz** e não suporta redes com login (WPA2-Enterprise). Hotspot de celular em 2,4 GHz resolve.
-- `MQTT_HOST` **nunca é `localhost`** — para o ESP32, `localhost` é ele mesmo. Use o IP do computador na LAN.
-- Dois clientes com o **mesmo `MQTT_CLIENT_ID`** se derrubam alternadamente no broker. Se mais de uma pessoa for testar, cada uma usa um sufixo próprio.
-
-### 3. Compilar e gravar
-
-Na barra do PlatformIO: **Build** (✓) e depois **Upload** (→). O monitor serial roda a **115200**.
-
-Esperado no serial ao ligar:
-
-```
-=== Sentinela de Cadeia Fria ===
-Pronto. Estado inicial: FECHADO.
-Wi-Fi: conectado. IP 192.168.0.42  RSSI -54 dBm
-MQTT: conectado. status=online
-```
-
-### 4. Acompanhar pelo painel
-
-Qualquer cliente MQTT assinando `sentinela/cadeia-fria/#` serve. Pela linha de comando:
+Preencha o `secrets.h` (não é versionado): Wi-Fi, `MQTT_HOST` (IP do computador), as senhas `MQTT_PASSWORD_CF01` e `MQTT_PASSWORD_VENT01` (iguais às do `.env`) e `OTA_PASSWORD`. Os dois firmwares usam o mesmo arquivo. Depois, na pasta `firmware/`:
 
 ```bash
-mosquitto_sub -h <broker> -p 1883 -t "sentinela/#" -v
+pio run -e esp32dev -t upload     # CF-01 (caixa)
+pio run -e vent01 -t upload       # VENT-01 (estação de ventilação)
+pio device monitor -b 115200      # acompanhar o Serial
 ```
 
-Para enviar um comando remoto e ver a confirmação voltar:
+Se o comando `pio` não for reconhecido no Windows, use o terminal do PlatformIO no VS Code (ou o caminho `%USERPROFILE%\.platformio\penv\Scripts\pio.exe`). Com o Mosquitto na rede local, vale descomentar `MQTT_KEEPALIVE_S 15` no `secrets.h` (o padrão de 60 s foi escolhido para hotspot e broker público, e faz o `offline` demorar ~90 s para aparecer). Há ainda programas de teste de bancada, sem rede: `pio run -e cf01_teste -t upload` e `pio run -e vent01_teste -t upload`.
+
+Esperado no Serial: conexão Wi-Fi, `MQTT: conectado. status=online`, e os dois dispositivos aparecendo **online** no painel. Para atualizar sem cabo (OTA), use `pio run -e cf01_ota -t upload` ou `-e vent01_ota`, com a variável de ambiente `OTA_PASSWORD` definida.
+
+### Sem hardware
+
+(`firmware/wokwi.toml` e `diagram.json` descrevem só a CF-01 da N1, no simulador Wokwi, sem DHT11; não há diagrama da VENT-01.)
+
+Com os serviços no ar, o simulador publica telemetria e responde comandos como as duas caixas:
 
 ```bash
-mosquitto_pub -h <broker> -p 1883 -t "sentinela/cadeia-fria/comando/rele" -m '{"acao":"ligar"}'
+docker compose run --rm --no-deps -v "$PWD/simulador:/sim:ro" backend python /sim/simulador.py --host mosquitto --velocidade 20
 ```
 
-O contrato completo de tópicos está em [`docs/arquitetura-mqtt.md`](docs/arquitetura-mqtt.md).
+## Usando o sistema
 
-### 5. Rodar sem hardware (opcional)
+1. Abra o painel e entre com um dos usuários do `.env`. O perfil **coordenação** vê os botões de comando; o **técnico** só visualiza.
+2. Cada cartão mostra um dispositivo: presença, temperatura e umidade com unidade, estado, modo, orçamento e atuadores.
+3. Envie um comando (ex.: ligar a ventoinha da `VENT-01`) e acompanhe o status ao vivo: aguardando, executado, confirmado, "já estava assim", "não confirmado" ou "recusado: motivo".
+4. Em **Histórico**, escolha o período: o gráfico mostra a temperatura com média móvel, e **períodos sem dados aparecem como lacuna**.
+5. Em **Regras**, a coordenação ajusta os limites de 30 °C, 26 °C e da janela de 2 minutos.
+6. Para o **Telegram**, crie um bot com o @BotFather e preencha o token e o `chat_id` no `.env`; o passo a passo está em [`backend/README.md`](backend/README.md).
 
-O repositório já traz `firmware/wokwi.toml` e `firmware/diagram.json`. Instale a extensão **Wokwi** no VS Code, ative a licença gratuita e use `F1 → Wokwi: Start Simulator`.
+Demonstração típica: aqueça o DHT11 (mão ou secador) acima de 30 °C por 2 minutos e a ventoinha liga sozinha, com o comando confirmado no painel. Abra a tampa até esgotar o orçamento e a caixa entra em QUEBRA: semáforo vermelho, alarme, sinalizador aceso pelo backend e aviso no Telegram.
 
-No simulador, o `secrets.h` precisa de `WIFI_SSID "Wokwi-GUEST"` com senha vazia e um **broker público** — a rede virtual do Wokwi alcança a internet, mas não a LAN do seu computador.
+## Estrutura do repositório
 
-### Ajustes conforme as peças da bancada
+```
+.
+├── CONTRATOS.md          contrato MQTT v1
+├── compose.yaml          Mosquitto + PostgreSQL + backend
+├── .env.example          variáveis do servidor (copie para .env)
+├── mosquitto/            configuração e ACL do broker
+├── backend/              FastAPI, SQLAlchemy, Alembic, interface web (app/static), testes
+├── firmware/             PlatformIO: CF-01, VENT-01, OTA, programas de teste de bancada e testes de lógica
+├── simulador/            simulador das duas caixas, pelo contrato
+├── .github/workflows/    CI (pytest, compose, build do firmware)
+└── docs/                 arquitetura, testes, pesquisa do orçamento e documentos da N3
+```
 
-Três constantes no topo de `firmware/src/main.cpp` dependem dos componentes que você tem em mãos. Se o comportamento sair invertido, é uma delas:
+## Testes e CI
 
-| Constante | Inverta quando |
+A cada push e pull request, o GitHub Actions executa:
+
+- **backend:** `pytest` em Python 3.12 (validação do contrato, histerese da regra, `commandId` duplicado, perfis, ciclo de comando, Telegram, simulador contra o backend);
+- **compose:** validação do `compose.yaml`;
+- **firmware:** build de `esp32dev` e `vent01` e testes de lógica pura (`pio test -e native`).
+
+Localmente:
+
+```bash
+docker run --rm -v "$PWD:/repo" -w /repo/backend python:3.12-slim sh -c "pip install -q -r requirements-dev.txt && python -m pytest -q"
+```
+
+O registro dos testes feitos em bancada e dos cenários de falha está em [`docs/testes.md`](docs/testes.md).
+
+## Requisitos do piso (R1 a R18)
+
+| Req. | Tema | Onde está |
+|---|---|---|
+| R1 | Hardware: entradas e atuadores reais | DHT11 e chave de tampa; relé, buzzer, LED, ventoinha 12 V ([`PINAGEM.md`](docs/n3/PINAGEM.md)) |
+| R2 | Firmware | `firmware/` (máquina de estados, NVS, modos, estado seguro) |
+| R3 | Contrato MQTT | [`CONTRATOS.md`](CONTRATOS.md) |
+| R4 | Backend | `backend/app` ([`API.md`](backend/API.md)) |
+| R5 | Banco | PostgreSQL com migrações Alembic (`backend/alembic`) |
+| R6 | Interface | `backend/app/static` |
+| R7 | Ciclo de comando | `backend/app/comandos.py` |
+| R8 | Decisão remota | `backend/app/regras.py` |
+| R9 | Segurança básica | login com JWT e bcrypt; segredos fora do Git |
+| R10 | Falhas testadas | [`docs/testes.md`](docs/testes.md) |
+| R11 | Entrega executável | este README, `.env.example`, `compose.yaml` |
+| R12 | Docker Compose | `compose.yaml` |
+| R13 | Múltiplos dispositivos | `CF-01` e `VENT-01` |
+| R14 | Painel analítico | histórico com média móvel e indicadores |
+| R15 | Notificação externa | Telegram (`backend/app/telegram.py`); testado com stub, sem bot real |
+| R16 | Perfis | técnico e coordenação |
+| R17 | OTA | ArduinoOTA com senha (implementado; sem demonstração em hardware) |
+| R18 | Testes e CI | pytest, testes nativos, GitHub Actions |
+
+## Limitações e o que mudou do planejado
+
+Registradas abertamente: são escolhas conscientes, não esquecimentos.
+
+**Diferenças em relação ao esquema do CP12 (proposta de upgrade):**
+
+- **Buzzer ligado direto ao GPIO**, sem o transistor BC337 do esquema; **ventoinha sem o diodo 1N4007** de roda livre. As duas peças não foram obtidas a tempo.
+- **Sem ESP32 nem DHT11 reserva**, como o CP12 previa.
+- **Sem molde 3D**: a `CF-01` ficou fixada em papelão dentro do cooler, em vez de uma peça impressa.
+- **Módulo de potência**: a ventoinha é acionada por relé de 1 canal, e não por MOSFET.
+- **Relé da VENT-01 em open-drain simulado**: o módulo é ativo-baixo e não solta com HIGH de 3,3 V, então o firmware liga com saída em LOW e desliga com o pino como entrada.
+- Os termos "exaustor" e "módulo de potência" do CP12 correspondem, na prática, à ventoinha de 80 mm e ao módulo relé.
+
+**Limitações do sistema montado:**
+
+- **A ventoinha não resfria de verdade o cooler.** Ela fica dentro da caixa e não há saída para o ar quente, então o interior tende a esquentar. A ventilação demonstra a **decisão remota** (backend → comando → atuador, com confirmação), mas não é uma solução térmica eficaz.
+- **A ventoinha pode ligar com a tampa fechada.** A regra R8 decide só pela temperatura medida; o ideal seria atuar apenas com a tampa aberta. Não foi feito por custo e prazo.
+- **OTA** está implementado no firmware, mas **não foi demonstrado nem testado em hardware**; a gravação foi feita por cabo USB.
+- **Telegram:** o envio é coberto por testes automatizados, mas **nenhum bot real foi criado**, então não houve teste contra a API do Telegram.
+- **DHT11 sem calibração:** não houve comparação com termômetro de referência.
+
+**Limitações técnicas:**
+
+- O **DHT11 mede o ar**, não o produto (±2 °C, 1 °C de resolução, 0 a 50 °C). Bafo e vapor saturam a umidade; nesse caso só a umidade é invalidada.
+- O **orçamento de exposição** (`consumo/s = 1 + (T − 20)/10`, 120 unidades) é um **indicador didático**: não tem respaldo normativo implementado. A pesquisa de bases e modelos alternativos está em [`docs/orcamento-termico.md`](docs/orcamento-termico.md) e fica como trabalho futuro.
+- As publicações dos dispositivos saem em **QoS 0** (limitação da biblioteca PubSubClient). A perda de uma confirmação aparece como `nao_confirmado`, nunca como falha silenciosa.
+- **Sem buffer offline:** durante uma queda de rede a regra local continua, mas a telemetria desse intervalo não é guardada.
+- O gráfico do painel usa **Chart.js por CDN** (precisa de internet).
+- O Telegram avisa QUEBRA e queda de dispositivo, mas **não avisa quando ele volta**.
+- O sinalizador de retenção é um LED; em uso real seria uma torre de sinalização (contato seco, sem mudar o circuito de controle).
+
+## Trabalho futuro
+
+- **Cortina de ar na borda da tampa**, como nas lojas com portas refrigeradas abertas: faixas de ar na abertura impedem que o ar externo entre e o interno saia. É uma proposta de maior impacto real do que ventilar dentro da caixa, e abre espaço para um estudo térmico. Exige ventoinha na borda, com saída de ar, e atuação **apenas com a tampa aberta** (a chave de tampa já existe; a regra no backend precisaria considerar o estado da tampa).
+- **Orçamento de exposição com base normativa** e perfis calibrados (ver [`docs/orcamento-termico.md`](docs/orcamento-termico.md)).
+- **Validar o DHT11** contra um termômetro de referência e medir o tempo de resposta ([`docs/risco-01-dht11.md`](docs/risco-01-dht11.md)).
+- **Buffer offline** de telemetria, publicações em QoS 1 (trocando a biblioteca MQTT) e aviso de retorno online no Telegram.
+- Sinalizador de retenção como torre de sinalização, molde 3D da caixa e demonstração do OTA.
+
+## Documentação
+
+| Documento | Conteúdo |
 |---|---|
-| `LED_ATIVO_ALTO` | o LED RGB for de **ânodo comum** (cores trocadas ou sempre acesas) |
-| `RELE_ATIVO_ALTO` | o módulo relé for **active-low** (aciona sozinho no boot) |
-| `BUZZER_PASSIVO` | o buzzer ficar **mudo** (é passivo e precisa de `tone()`) |
+| [`CONTRATOS.md`](CONTRATOS.md) | contrato MQTT v1: tópicos, payloads, comandos, erros, QoS |
+| [`backend/API.md`](backend/API.md) | formatos da API REST |
+| [`backend/README.md`](backend/README.md) | testes, simulador, migrações, Telegram, CI |
+| [`docs/n3/PINAGEM.md`](docs/n3/PINAGEM.md) | pinos e ligações dos dois dispositivos |
+| [`docs/n3/BOM.md`](docs/n3/BOM.md) | lista de materiais |
+| [`docs/n3/montagem/`](docs/n3/montagem/) | registro de montagem das placas soldadas |
+| [`docs/n3/CP12.md`](docs/n3/CP12.md) | proposta de upgrade (CP12), seções 1 a 4; o PDF completo está em [`docs/n3/`](docs/n3/) |
+| [`docs/testes.md`](docs/testes.md) | testes executados, com saídas capturadas |
+| [`docs/orcamento-termico.md`](docs/orcamento-termico.md) | base técnica e opções para o orçamento de exposição |
+| [`docs/risco-01-dht11.md`](docs/risco-01-dht11.md) | risco técnico do DHT11 |
+| [`docs/arquitetura-inicial.md`](docs/arquitetura-inicial.md), [`docs/arquitetura-mqtt.md`](docs/arquitetura-mqtt.md), [`docs/prototipo.md`](docs/prototipo.md) | histórico do protótipo da N1 |
+
+## Equipe
+
+| Integrante | GitHub |
+|---|---|
+| Victor Henrique Kunz de Souza | [@victorkunzz](https://github.com/victorkunzz) |
+| Henrique Cordeiro de Oliveira | [@rique1011](https://github.com/rique1011) |
+| Nicholas Scoz dos Santos | [@nicholasscoz](https://github.com/nicholasscoz) |
+| Lucas Rogério Mendonça | [@mendoncaluucas](https://github.com/mendoncaluucas) |
+| Kauã Henrique Lucindo | [@lucind0](https://github.com/lucind0) |
+| Vinicius Steuernagel | [@steuer10](https://github.com/steuer10) |
