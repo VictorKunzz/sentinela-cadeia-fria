@@ -1,6 +1,6 @@
 # Orçamento térmico: base técnica e opções de modelo
 
-Estudo de 21/11/2026 sobre a fórmula que a CF-01 usa para decidir quando uma exposição vira QUEBRA. **Status: pesquisa e recomendação. A fórmula do firmware não foi alterada** (a implementação fica para depois de tudo pronto, se sobrar tempo; ver seção 6).
+Estudo de 21/11/2026 sobre a fórmula que a CF-01 usa para decidir quando uma exposição vira QUEBRA. **Status: pesquisa e recomendação. A fórmula do firmware não foi alterada** (a implementação é trabalho futuro; ver seção 6).
 
 Convenção de verificação: **ABERTA** = a fonte foi lida; **INDIRETA** = só resumo de busca ou agregador; **NÃO CONFIRMADA** = não foi encontrada ou aberta. Números marcados INDIRETA devem ser conferidos na fonte antes de citar na defesa.
 
@@ -43,7 +43,7 @@ Observações honestas:
 
 ## 3. Base de modelagem
 
-- **Q10 e Arrhenius:** Q10(T) = exp[(Ea/R)(1/T − 1/(T+10))]. A Ea padrão do MKT, **83,144 kJ/mol, equivale a ΔH/R ≈ 10 000 K** e a um Q10 ≈ 3 (não 2). *(Correção: o briefing interno falava em "10 kJ/mol" e "83,14 K"; os valores corretos são 83 kJ/mol e 10 000 K.)* A origem do 83,144 kJ/mol (USP <1079>, protocolos OMS PQS) veio de resumos de busca (NÃO CONFIRMADA na fonte primária).
+- **Q10 e Arrhenius:** Q10(T) = exp[(Ea/R)(1/T − 1/(T+10))]. A Ea padrão do MKT, **83,144 kJ/mol, equivale a ΔH/R ≈ 10 000 K** e a um Q10 ≈ 3 (não 2). *(Atenção: não confundir com "10 kJ/mol" nem "83,14 K"; os valores corretos são 83 kJ/mol e 10 000 K.)* A origem do 83,144 kJ/mol (USP <1079>, protocolos OMS PQS) veio de resumos de busca (NÃO CONFIRMADA na fonte primária).
 - **Valores medidos de Q10/Ea** (exemplos, não faixa geral): salada pronta pasteurizada, Q10 = 4,53 e Ea = 105,6 kJ/mol (Haouet et al., 2019, ABERTA); carne de caranguejo, Q10 ≈ 3,4–3,9 (conta nossa sobre a Tabela 6.1 da FAO, ABERTA); vacinas, o indicador VVM da OMS implica Ea ≈ 119 kJ/mol e Q10 ≈ 4,8 (conta nossa sobre a Tabela 1a do documento WHO PQS E006/IN05.3, ABERTA). **Não existe revisão por pares aberta que firme uma faixa "típica" para refrigerados**; Q10 = 2 não é um valor confirmado.
 - **Orçamento = indicador tempo-temperatura:** acumular Σ c(T)·Δt até um limite é exatamente o princípio do VVM e dos TTI. A CF-01 é um TTI eletrônico; o VVM (OMS) é a referência regulatória mais próxima.
 - **MKT** (Haynes, 1971; USP <1079>) é uma média: não detecta uma exposição curta e intensa, só vale se a degradação for Arrhenius, e a USP restringe seu uso. Serve como **indicador secundário** do período, não como regra de QUEBRA.
@@ -79,6 +79,6 @@ Os três modelos concordam perto da âncora (30–35 °C) e divergem por fator 2
 
 ## 6. Decisão registrada
 
-O Victor decidiu (21/11) que isso vai para o **backlog**: a pesquisa e a justificativa estão feitas; **implementar** (mais de uma regra, visíveis nos painéis, editáveis pela coordenação com recomendação e justificativa) fica para **depois de tudo soldado e pronto**, se sobrar tempo, com os testes refeitos. Mudar a fórmula invalida a conferência de `docs/testes.md` e os testes do firmware (`firmware/test/test_logica`). Se não der tempo, fica documentado como **trabalho futuro**, com o texto de limitação da seção 4.
+Decisão da equipe (21/11): pesquisa agora, implementação como **trabalho futuro**. A pesquisa e a justificativa estão feitas; **implementar** (mais de uma regra, visíveis nos painéis, editáveis pela coordenação com recomendação e justificativa) ficou para depois da montagem, com os testes refeitos. Mudar a fórmula invalida a conferência de `docs/testes.md` e os testes do firmware (`firmware/test/test_logica`). Não foi implementada: fica documentada como **trabalho futuro**, com o texto de limitação da seção 4.
 
 Pendências de verificação antes de citar na defesa: abrir as páginas do USDA FSIS e o texto da CVS 5/2013 / CVS 3/2026, confirmar a vigência no DOE-SP, e conferir a Ea padrão nos protocolos OMS PQS.

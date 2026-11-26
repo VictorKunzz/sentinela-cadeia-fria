@@ -1,13 +1,17 @@
 # RISCO-01 — Tempo de resposta do DHT11
 
+> **Documento histórico da N1.** O contrato e o sistema vigentes estão em [CONTRATOS.md](../CONTRATOS.md) e no [README](../README.md); este arquivo registra o protótipo como foi defendido na N1 e pode divergir do produto final.
+
 | | |
 |---|---|
 | **Registrado em** | Aula 02 — lançamento da N1 |
 | **Revisitado em** | Aprofundamento pós-Aula 04 — à luz de eletrônica (Aula 03) e ADC (Aula 04) |
 | **Responsável pela investigação** | Nicholas (experimento) · Vinicius (registro) |
-| **Status** | Aberto — aguardando execução do experimento |
+| **Status** | Experimento não executado; limitação declarada |
 | **Impacto se confirmado** | Alto — invalida a medição central do projeto |
-| **Bloqueia** | Tarefa 14 (definição do limite de exposição) |
+| **Bloqueia** | Definição do limite de exposição (ver [`orcamento-termico.md`](orcamento-termico.md)) |
+
+**Situação final:** o experimento abaixo não foi executado. O tempo de resposta (t₉₀) do DHT11 não foi medido; o sensor mede o ar (±2 °C, resolução de 1 °C), e o orçamento de exposição é um indicador didático, não uma medição calibrada (ver [`orcamento-termico.md`](orcamento-termico.md)). O protocolo a seguir fica como proposta.
 
 ## Enunciado
 
@@ -32,7 +36,7 @@ O Sentinela mede eventos de **30 a 60 segundos** — o tempo típico de uma tamp
 ### Materiais
 
 - ESP32 DevKit + DHT11 montados, imprimindo no serial a cada 1 s
-- **Termômetro digital de referência** com resposta rápida — *o grupo ainda não tem; providenciar antes do experimento*
+- **Termômetro digital de referência** com resposta rápida — *o grupo não dispõe de um; necessário para executar o experimento*
 - Fonte de calor estável (secador em ar quente a distância fixa, ou ambiente aquecido controlado)
 - Cronômetro
 - Planilha para registro
@@ -61,7 +65,7 @@ O DHT11 é considerado **inadequado** se qualquer uma destas condições ocorrer
 - **t₉₀ > 30 s** — leva mais tempo para responder do que dura metade das exposições que queremos medir; ou
 - **erro na média de 60 s > 2 °C** — o erro se propaga diretamente para o orçamento de exposição.
 
-Caso contrário, o DHT11 é considerado **suficiente para a N1**, com a limitação documentada e o valor de t₉₀ citado no README.
+Caso contrário, o DHT11 é considerado **suficiente para a N1**, com a limitação documentada.
 
 ## Plano B
 

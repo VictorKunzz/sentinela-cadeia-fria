@@ -2,7 +2,7 @@
 
 Lista de materiais dos dois dispositivos da N3: a caixa `CF-01` e a estação de ventilação `VENT-01`.
 
-Critério: o kit da equipe (ESP32 Basic Starter Kit) cobre a base. A compra completa o que falta para a VENT-01, para a montagem de produto (sensor de tampa, botão e sinalizador de painel) e para a compactação em placa soldada da fase de compactação (opcional, só se sobrar tempo).
+Critério: o kit da equipe (ESP32 Basic Starter Kit) cobre a base. A compra completa o que falta para a VENT-01, para a montagem de produto (sensor de tampa, botão e sinalizador de painel) e para a compactação em placa perfurada soldada.
 
 ## O que já temos (kit + N1)
 
@@ -37,34 +37,34 @@ Montagem de produto e compactação:
 | 6 microchaves fim de curso KW12 | sensor de tampa da CF-01: a tampa aperta a haste ao fechar |
 | 10 botões de painel PBS-11B (sem trava) | botão de reset da CF-01, preso no gabinete |
 | 10 LEDs RGB difusos cátodo comum, 4 terminais (retangulares 2×5×5 mm) | semáforo de estado no gabinete da CF-01 e indicador de estado da VENT-01 (o LED RGB do kit fica na protoboard). O sinalizador de retenção usa os LEDs vermelhos de 5 mm do kit |
-| 10 placas perfuradas 5×7 cm | eletrônica soldada da CF-01 e da VENT-01 (Fase 5) |
+| 10 placas perfuradas 5×7 cm | eletrônica soldada da CF-01 (ESP32 em soquete) e da VENT-01 |
 | 10 barras de pinos fêmea 1×40 | soquete para o ESP32 e os módulos: encaixam sem solda direta e podem ser trocados |
 | 10 barras de pinos macho 1×40 | pontos de conexão na placa para jumpers F-F |
 | 10 bornes KF301 2 vias | entrada de alimentação e saída da ventoinha na placa, com parafuso |
 
 ## O que a equipe fornece
 
-- **CF-01:** caixa térmica pequena (isopor serve), ainda **não providenciada**.
+- **Caixa:** o produto usou um cooler (caixa térmica pequena) como gabinete da CF-01.
 - **CF-01:** power bank + cabo micro-USB. Testar se o power bank não desliga sozinho com o consumo baixo do ESP32 (~100 mA).
-- **Ferramentas (emprestadas, em mãos):** ferro de solda com ponta fina e esponja, estanho, multímetro Minipa ET-2042C, alicates, desencapador, chave de fenda, cabinho AWG 22–24, sugador, terceira mão com lupa, isqueiro, fita isolante. Sem cola quente e sem furadeira.
+- **Ferramentas:** ferro de solda com ponta fina e esponja, estanho, multímetro Minipa ET-2042C, alicates, desencapador, chave de fenda, cabinho AWG 22–24, sugador, terceira mão com lupa, fita isolante. Sem cola quente e sem furadeira.
 
-## Ainda falta (prometido no esquema do CP12 v1.0, não comprado)
+## Não obtidos (limitação declarada)
 
 | Item | Para quê | Onde conseguir |
 |---|---|---|
-| Transistor BC337 (NPN) + resistor 1 kΩ | aciona o buzzer da CF-01, para ele não puxar corrente direto do GPIO 27 | tio / loja de eletrônica; qualquer NPN equivalente (BC547, 2N2222) serve |
-| Diodo 1N4007 | roda livre nos terminais da ventoinha da VENT-01 | tio / loja de eletrônica; 1N4001–1N4007 servem |
-| Resistor 150 Ω | limita a corrente do LED sinalizador | conferir no kit; 220 Ω serve se não houver (LED um pouco menos brilhante) |
+| Transistor BC337 (NPN) + resistor 1 kΩ | aciona o buzzer da CF-01, para ele não puxar corrente direto do GPIO 27 | não usado: o buzzer foi ligado direto ao GPIO 27 |
+| Diodo 1N4007 | roda livre nos terminais da ventoinha da VENT-01 | não usado: a ventoinha roda sem o diodo |
+| Resistor 150 Ω | limita a corrente do LED sinalizador | kit; 220 Ω serve na falta (LED um pouco menos brilhante) |
 
-São componentes de centavos, mas estão no esquema elétrico entregue. Sem eles a montagem diverge do CP12.
+São componentes de centavos, previstos no esquema elétrico do CP12 v1.0 e não obtidos. A montagem final diverge do CP12 nesses pontos, o que fica declarado como limitação.
 
 ## Ficou de fora de propósito
 
 | Item | Por quê |
 |---|---|
-| ESP32 reserva | custo; risco aceito. **O CP12 v1.0 listava** "2 ESP32 (VENT-01 + reserva)" e "DHT11 reserva": declarar como limitação no README da N3 |
+| ESP32 reserva | custo; risco aceito. **O CP12 v1.0 listava** "2 ESP32 (VENT-01 + reserva)" e "DHT11 reserva": limitação declarada no README |
 | DHT11 reserva | custo; risco aceito (idem) |
-| Parafusos M3 e termo-retrátil | só para a compactação (Fase 5); fita isolante cobre a bancada |
+| Parafusos M3 e termo-retrátil | não usados; fita isolante cobriu as ligações |
 
 ## Plano B
 
