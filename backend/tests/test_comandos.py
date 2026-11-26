@@ -42,6 +42,24 @@ def test_config_leva_valor(pub):
     assert pub.msgs[-1][1]["valor"] == 90.0
 
 
+def test_config_confirma_pelo_executado_sem_novo_estado(pub):
+    """Regressao (25/11, auditoria): o firmware nao republica `estado` ao executar `config`
+    (o orcamento inicial nao faz parte do `estado`), entao o comando nao pode depender dele."""
+    cid = novo(pub, "CF-01", "config", "orcamentoInicial", 90.0)
+    ingerir(pub, "CF-01", "confirmacao", confirmacao("CF-01", cid, "aceito"), T0 + seg(1))
+    assert cmd(cid).status == "recebido"
+    ingerir(pub, "CF-01", "confirmacao", confirmacao("CF-01", cid, "executado"), T0 + seg(2))
+    c = cmd(cid)
+    assert c.status == "confirmado" and c.confirmado_em is not None
+
+
+def test_config_rejeitado_continua_rejeitado(pub):
+    cid = novo(pub, "CF-01", "config", "orcamentoInicial", 10.0)
+    ingerir(pub, "CF-01", "confirmacao", confirmacao("CF-01", cid, "rejeitado", "FORA_DA_FAIXA"), T0 + seg(1))
+    c = cmd(cid)
+    assert c.status == "recebido" and c.resultado == "rejeitado" and c.motivo == "FORA_DA_FAIXA"
+
+
 def test_quatro_estados_ate_confirmado(pub):
     vent_online(pub)
     cid = novo(pub)
