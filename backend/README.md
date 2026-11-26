@@ -9,7 +9,7 @@ docker compose up -d --build
 ```
 A migração do Alembic roda sozinha na partida do container.
 
-## Testes (Python 3.12 em container; o Python local é 3.14)
+## Testes (Python 3.12 em container)
 Rodam em SQLite em memória, sem broker. Na raiz do repositório, PowerShell:
 ```
 docker run --rm -v "${PWD}:/repo" -w /repo/backend python:3.12-slim sh -c "pip install -q -r requirements-dev.txt && python -m pytest -q"
@@ -28,7 +28,7 @@ Nova migração: `docker compose run --rm --no-deps -v "${PWD}/backend:/app" bac
 ## Telegram (R15)
 O backend avisa no Telegram quando a **CF-01 entra em QUEBRA** e quando **um dispositivo fica offline**, uma mensagem por transição (um LWT repetido ou telemetria seguinte em QUEBRA não gera outra). Sem token ou sem `chat_id` o envio fica desligado e o backend segue normal. O envio roda em thread própria: se a API do Telegram cair, nada trava. O token nunca vai para o log.
 
-**O que o Victor precisa fazer uma vez** (nenhum dado vai para o repositório):
+**O que fazer uma vez** (nenhum dado vai para o repositório):
 1. No Telegram, abra uma conversa com **@BotFather**, envie `/newbot`, escolha um nome e um usuário terminado em `bot`. O BotFather responde com o **token** (algo como `123456789:AA...`). Guarde: quem tem o token controla o bot.
 2. Crie um **grupo** (ou use uma conversa direta) e **adicione o bot** a ele. Mande qualquer mensagem no grupo.
 3. Descubra o **chat_id**: abra no navegador `https://api.telegram.org/bot<SEU_TOKEN>/getUpdates` (troque pelo token) e procure `"chat":{"id":...`. Em grupo o número é **negativo** (ex.: `-1001234567890`). Se vier `"result":[]`, mande outra mensagem no grupo e recarregue.
@@ -47,14 +47,10 @@ Para testar sem esperar uma QUEBRA de verdade, rode o simulador com a CF-01 aber
 - **compose:** `docker compose config` com o `.env.example`;
 - **firmware:** `pio run -e esp32dev -e vent01` (com `secrets.h` copiado do modelo) e `pio test -e native` (lógica pura).
 
-Selo para o README raiz (pasta do repositório `VictorKunzz/sentinela-cadeia-fria`):
-```
-[![CI](https://github.com/VictorKunzz/sentinela-cadeia-fria/actions/workflows/ci.yml/badge.svg)](https://github.com/VictorKunzz/sentinela-cadeia-fria/actions/workflows/ci.yml)
-```
 Os mesmos comandos localmente (na raiz, Git Bash/PowerShell com Docker):
 ```
 docker run --rm -v "${PWD}:/repo" -w /repo/backend python:3.12-slim sh -c "pip install -q -r requirements-dev.txt && python -m pytest -q"
 ```
 ```
-C:\Users\viche\.platformio\penv\Scripts\pio.exe run -e esp32dev -e vent01
+pio run -e esp32dev -e vent01   # na pasta firmware/
 ```
